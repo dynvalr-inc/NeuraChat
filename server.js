@@ -12,8 +12,7 @@ app.post('/chat', async (req, res) => {
     const userMessage = req.body.message;
     const selectedModel = req.body.model || "google/gemini-2.0-flash-001";
     // The server uses the secret key from .env
-    const apiKey = process.env.OPENROUTER_API_KEY;
-
+    const apiKey = process.env.OPENROUTER_API_KEY || "";
     // This is where the server talks to OpenRouter for the user
     try {
         const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
