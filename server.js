@@ -17,7 +17,7 @@ app.post('/chat', async (req, res) => {
     // 1. Define the AI's identity
     const systemInstruction = { 
         role: "system", 
-        content: "Your name is NeuraChat. You are a helpful and friendly AI assistant created by Vipul. Always identify as NeuraChat." 
+        content: "Your name is NeuraChat. You are a helpful and friendly AI assistant created by Vipul D. Kadam. Always identify as NeuraChat." 
     };
 
     // 2. Combine: Identity + History + New User Message
