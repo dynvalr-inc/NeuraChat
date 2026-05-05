@@ -8,6 +8,16 @@
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+/* CUSTOM HIGHLIGHT COLOR */
+::selection {
+  background: #4B0082; /* Dark Purple highlight */
+  color: white;
+}
+::-moz-selection {
+  background: #4B0082;
+  color: white;
+}
+
 :root {
   --bg:        #f7f7f8;
   --surface:  #fdbcff;
@@ -45,8 +55,8 @@ body {
 }
 
 .logo-mark {
-  width: 40px; height: 40px; /* Made slightly larger */
-  background: transparent; /* REMOVED THE PURPLE BOX */
+  width: 40px; height: 40px;
+  background: transparent;
   display: flex; align-items: center; justify-content: center;
   flex-shrink: 0;
 }
@@ -59,7 +69,7 @@ body {
 
 .brand {
   font-family: 'Syne', sans-serif;
-  font-size: 18px; /* Slightly larger text to match logo */
+  font-size: 18px;
   font-weight: 600;
   letter-spacing: -0.3px;
   color: var(--text);
@@ -102,7 +112,7 @@ body {
 }
 
 .welcome-logo {
-  width: 140px; /* Slightly larger welcome logo */
+  width: 140px;
   height: 140px;
   margin-bottom: 18px;
   object-fit: contain;
