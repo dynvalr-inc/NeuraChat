@@ -10,7 +10,7 @@
 
 /* CUSTOM HIGHLIGHT COLOR */
 ::selection {
-  background: #4B0082; /* Dark Purple highlight */
+  background: #4B0082;
   color: white;
 }
 ::-moz-selection {
@@ -31,6 +31,7 @@
   --user-bg:  #ffbbf4;
   --ai-bg:    #ffbbf4;
   --code-bg:  #0d0d10;
+  --input-text: #2e004d; /* DARK PURPLE FOR TEXT */
 }
 
 body {
@@ -231,7 +232,7 @@ body {
   30%           { transform: scale(1.2); opacity: 1; }
 }
 
-/* ── INPUT ── */
+/* ── INPUT AREA ── */
 .input-area {
   padding: 14px 20px 18px;
   border-top: 1px solid var(--border);
@@ -255,13 +256,20 @@ body {
   flex: 1;
   background: none;
   border: none;
-  color: var(--text);
+  color: var(--input-text); /* DARKER TEXT WHEN TYPING */
   font-family: 'Inter', sans-serif;
   font-size: 14px;
+  font-weight: 500;
   line-height: 1.55;
   resize: none;
   outline: none;
   max-height: 160px;
+}
+
+/* DARKER PLACEHOLDER TEXT */
+.input-box textarea::placeholder {
+  color: #3b0063; 
+  opacity: 0.7;
 }
 
 .send-btn {
