@@ -1,4 +1,5 @@
-<html lang="en"><head>
+<html lang="en">
+<head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>NeuraChat — OpenRouter AI</title>
@@ -81,128 +82,6 @@ body {
 }
 
 @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
-
-/* ── SETUP BAR ── */
-.setup-bar {
-  background: var(--surface);
-  border-bottom: 1px solid var(--border);
-  padding: 10px 22px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex-shrink: 0;
-  flex-wrap: wrap;
-}
-
-.setup-bar label {
-  font-size: 11px;
-  color: var(--muted);
-  white-space: nowrap;
-  font-family: 'Syne', sans-serif;
-  letter-spacing: 0.5px;
-  text-transform: uppercase;
-}
-
-.setup-bar input[type="password"],
-.setup-bar select {
-  background: var(--card);
-  border: 1px solid var(--border2);
-  color: var(--text);
-  font-family: 'Inter', monospace;
-  font-size: 12px;
-  padding: 7px 12px;
-  border-radius: 8px;
-  outline: none;
-  transition: border-color 0.2s;
-}
-
-.setup-bar input[type="password"] { flex: 1; min-width: 160px; }
-.setup-bar select { min-width: 180px; cursor: pointer; }
-.setup-bar input:focus,
-.setup-bar select:focus { border-color: var(--accent); }
-
-.save-btn {
-  background: var(--accent);
-  color: #0a0a0b;
-  border: none;
-  padding: 7px 16px;
-  border-radius: 8px;
-  font-size: 12px;
-  font-weight: 600;
-  font-family: 'Syne', sans-serif;
-  cursor: pointer;
-  white-space: nowrap;
-  transition: background 0.2s, transform 0.1s;
-}
-
-.save-btn:hover { background: var(--accent-d); }
-.save-btn:active { transform: scale(0.97); }
-
-.key-badge {
-  font-size: 11px;
-  padding: 4px 10px;
-  border-radius: 20px;
-  white-space: nowrap;
-  display: none;
-}
-
-.key-badge.ok  { background: rgba(232,255,71,0.1);  color: var(--accent); border: 1px solid rgba(232,255,71,0.2); }
-.key-badge.err { background: rgba(255,80,80,0.1);   color: #ff6060;       border: 1px solid rgba(255,80,80,0.2); }
-
-.clear-btn {
-  background: none;
-  border: 1px solid var(--border2);
-  color: var(--muted);
-  font-size: 11px;
-  padding: 6px 12px;
-  border-radius: 8px;
-  cursor: pointer;
-  font-family: 'Inter', sans-serif;
-  transition: color 0.2s, border-color 0.2s;
-  white-space: nowrap;
-}
-
-.clear-btn:hover { color: var(--text); border-color: var(--border2); }
-
-/* ── SYSTEM PROMPT ── */
-.sys-bar { background: var(--surface); border-bottom: 1px solid var(--border); flex-shrink: 0; }
-
-.sys-toggle {
-  padding: 8px 22px;
-  font-size: 11px;
-  color: var(--muted);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-family: 'Syne', sans-serif;
-  letter-spacing: 0.4px;
-  text-transform: uppercase;
-  user-select: none;
-  transition: color 0.2s;
-}
-
-.sys-toggle:hover { color: var(--accent); }
-
-.sys-body { display: none; padding: 0 22px 12px; }
-.sys-body.open { display: block; }
-
-.sys-body textarea {
-  width: 100%;
-  background: var(--card);
-  border: 1px solid var(--border2);
-  color: var(--text);
-  font-family: 'Inter', sans-serif;
-  font-size: 12px;
-  padding: 10px 12px;
-  border-radius: 8px;
-  outline: none;
-  resize: vertical;
-  min-height: 56px;
-  line-height: 1.6;
-}
-
-.sys-body textarea:focus { border-color: var(--accent); }
 
 /* ── CHAT ── */
 .chat-scroll {
@@ -328,44 +207,14 @@ body {
   border-radius: 4px 16px 16px 16px;
 }
 
-.bubble code {
-  font-family: 'Courier New', monospace;
-  font-size: 12px;
-  background: var(--code-bg);
-  color: var(--accent);
-  padding: 2px 6px;
-  border-radius: 4px;
-}
-
-.bubble pre {
-  background: var(--code-bg);
-  border: 1px solid var(--border2);
-  border-radius: 10px;
-  padding: 14px 16px;
-  overflow-x: auto;
-  margin: 10px 0;
-  font-family: 'Courier New', monospace;
-  font-size: 12.5px;
-  line-height: 1.65;
-}
-
-.bubble pre code { background: none; padding: 0; color: #c8ffa0; }
-.bubble p + p { margin-top: 8px; }
-.bubble ul, .bubble ol { padding-left: 20px; margin: 6px 0; }
-.bubble li { margin: 4px 0; }
-.bubble strong { color: var(--accent); font-weight: 500; }
-.bubble h1,.bubble h2,.bubble h3 { font-family: 'Syne', sans-serif; font-size: 15px; font-weight: 600; margin: 12px 0 4px; color: var(--accent); }
-
 /* ── TYPING ── */
 .typing-dots { display: flex; gap: 5px; padding: 4px 2px; align-items: center; }
-
 .typing-dots span {
   width: 7px; height: 7px;
   background: var(--accent);
   border-radius: 50%;
   animation: pop 1.3s ease-in-out infinite;
 }
-
 .typing-dots span:nth-child(2) { animation-delay: 0.18s; }
 .typing-dots span:nth-child(3) { animation-delay: 0.36s; }
 
@@ -392,10 +241,7 @@ body {
   border: 1px solid var(--border2);
   border-radius: 14px;
   padding: 10px 14px;
-  transition: border-color 0.2s;
 }
-
-.input-box:focus-within { border-color: var(--accent); }
 
 .input-box textarea {
   flex: 1;
@@ -408,10 +254,7 @@ body {
   resize: none;
   outline: none;
   max-height: 160px;
-  overflow-y: auto;
 }
-
-.input-box textarea::placeholder { color: var(--muted); }
 
 .send-btn {
   width: 36px; height: 36px;
@@ -420,206 +263,73 @@ body {
   border-radius: 10px;
   cursor: pointer;
   display: flex; align-items: center; justify-content: center;
-  flex-shrink: 0;
-  transition: background 0.2s, transform 0.1s;
 }
 
-.send-btn:hover:not(:disabled) { background: var(--accent-d); }
-.send-btn:active:not(:disabled) { transform: scale(0.94); }
-.send-btn:disabled { opacity: 0.28; cursor: not-allowed; }
-.send-btn svg { width: 16px; height: 16px; fill: #0a0a0b; }
-
-.footer-note {
-  max-width: 740px;
-  margin: 7px auto 0;
-  font-size: 11px;
-  color: var(--muted);
-  text-align: center;
-}
-
-.footer-note a { color: var(--accent); text-decoration: none; }
-.footer-note a:hover { text-decoration: underline; }
-
-.err-bubble {
-  background: rgba(255,80,80,0.08);
-  border: 1px solid rgba(255,80,80,0.2);
-  color: #ff7070;
-  padding: 10px 14px;
-  border-radius: 10px;
-  font-size: 13px;
-}
-
-@media (max-width: 520px) {
-  .setup-bar { padding: 10px 14px; }
-  .powered { display: none; }
-  .chat-scroll { padding: 18px 12px; }
-  .input-area { padding: 10px 12px 14px; }
-}
+.footer-note { font-size: 11px; color: var(--muted); text-align: center; margin-top: 7px; }
 </style>
 </head>
 <body>
 
-<!-- HEADER -->
 <div class="header">
   <div class="logo-mark">
-    <svg viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <circle cx="9" cy="9" r="3.5" fill="#0a0a0b"></circle>
-      <circle cx="9" cy="2" r="1.5" fill="#0a0a0b"></circle>
-      <circle cx="9" cy="16" r="1.5" fill="#0a0a0b"></circle>
-      <circle cx="2" cy="9" r="1.5" fill="#0a0a0b"></circle>
-      <circle cx="16" cy="9" r="1.5" fill="#0a0a0b"></circle>
-      <line x1="9" y1="3.5" x2="9" y2="5.5" stroke="#0a0a0b" stroke-width="1.5"></line>
-      <line x1="9" y1="12.5" x2="9" y2="14.5" stroke="#0a0a0b" stroke-width="1.5"></line>
-      <line x1="3.5" y1="9" x2="5.5" y2="9" stroke="#0a0a0b" stroke-width="1.5"></line>
-      <line x1="12.5" y1="9" x2="14.5" y2="9" stroke="#0a0a0b" stroke-width="1.5"></line>
-    </svg>
+    <svg viewBox="0 0 18 18" fill="none"><circle cx="9" cy="9" r="3.5" fill="#0a0a0b"></circle></svg>
   </div>
   <span class="brand">Neura<span>Chat</span></span>
   <span class="powered">via OpenRouter</span>
   <div class="online-dot"></div>
 </div>
 
-<!-- SETUP BAR -->
-
-
-<!-- SYSTEM PROMPT -->
-<div class="sys-bar">
-  
-  <div class="sys-body" id="sysBody">
-    <textarea id="sysPrompt" rows="2" placeholder="You are a helpful assistant...">You are a helpful, friendly, and concise AI assistant.</textarea>
-  </div>
-</div>
-
-<!-- CHAT -->
 <div class="chat-scroll" id="chatScroll">
-  <div class="chat-inner" id="chatInner">
-    <div class="msg-row user">
-    <div class="av user">👤</div>
-    <div class="bubble"><p>Give me a fun fact</p></div>
-  </div><div class="msg-row ai" id="typing">
-    <div class="av ai">N</div>
-    <div class="bubble"><div class="typing-dots"><span></span><span></span><span></span></div></div>
-  </div></div>
+  <div class="chat-inner" id="chatInner"></div>
 </div>
 
-<!-- INPUT -->
 <div class="input-area">
   <div class="input-box">
-    <textarea id="msgInput" placeholder="Type a message… (Enter to send, Shift+Enter for new line)" rows="1" onkeydown="handleKey(event)" oninput="autoResize(this)" style="height: auto;"></textarea>
-    <button class="send-btn" id="sendBtn" onclick="send()" title="Send" disabled="">
-      <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"></path></svg>
+    <textarea id="msgInput" placeholder="Type a message..." rows="1" onkeydown="handleKey(event)"></textarea>
+    <button class="send-btn" id="sendBtn" onclick="send()">
+      <svg viewBox="0 0 24 24" width="16" height="16"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"></path></svg>
     </button>
   </div>
-  <div class="footer-note">By DYNVALR
-  </div>
+  <div class="footer-note">By DYNVALR</div>
 </div>
 
 <script>
 const $ = id => document.getElementById(id);
 let history = [];
-let apiKey = localStorage.getItem('or_key') || '';
 let busy = false;
 
-function saveKey() {
-  const v = $('apiKey').value.trim();
-  if (!v) return;
-  apiKey = v;
-  localStorage.setItem('or_key', v);
-  badge(true);
-  $('sendBtn').disabled = false;
-  $('msgInput').focus();
-}
-
-function badge(ok, msg) {
-  const el = $('keyBadge');
-  el.style.display = 'inline-block';
-  el.className = 'key-badge ' + (ok ? 'ok' : 'err');
-  el.textContent = msg || (ok ? '✓ Connected' : '✗ Invalid key');
-}
-
-function toggleSys() {
-  const open = $('sysBody').classList.toggle('open');
-  $('sysArrow').textContent = open ? '▼' : '▶';
-}
-
-function chip(btn) {
-  $('msgInput').value = btn.textContent;
-  autoResize($('msgInput'));
-  send();
-}
-
-function handleKey(e) {
-  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); }
-}
-
-function autoResize(el) {
-  el.style.height = 'auto';
-  el.style.height = Math.min(el.scrollHeight, 160) + 'px';
-}
+function handleKey(e) { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); } }
 
 function clearChat() {
   history = [];
   $('chatInner').innerHTML = `
-    <div class="welcome" id="welcome">
+    <div class="welcome">
       <span class="welcome-glyph">🤖</span>
       <h2>Welcome to <em>NeuraChat</em></h2>
-      <p>Chat cleared. Start a new conversation!</p>
+      <p>Start a new conversation!</p>
       <div class="chips">
         <button class="chip" onclick="chip(this)">What can you do?</button>
         <button class="chip" onclick="chip(this)">Write me a poem</button>
-        <button class="chip" onclick="chip(this)">Explain black holes simply</button>
-        <button class="chip" onclick="chip(this)">Give me a fun fact</button>
       </div>
     </div>`;
 }
 
-function addMsg(role, text) {
-  const w = $('welcome');
-  if (w) w.remove();
+function chip(btn) { $('msgInput').value = btn.textContent; send(); }
 
+function addMsg(role, text) {
+  const w = document.querySelector('.welcome'); if (w) w.remove();
   const row = document.createElement('div');
   row.className = 'msg-row ' + role;
-  row.innerHTML = `
-    <div class="av ${role}">${role === 'user' ? '😊' : 'N'}</div>
-    <div class="bubble">${md(text)}</div>
-  `;
+  row.innerHTML = `<div class="av ${role}">${role === 'user' ? '😊' : 'N'}</div><div class="bubble"><p>${text}</p></div>`;
   $('chatInner').appendChild(row);
-  scroll();
+  $('chatScroll').scrollTop = $('chatScroll').scrollHeight;
 }
 
 function addTyping() {
-  const w = $('welcome'); if (w) w.remove();
   const row = document.createElement('div');
   row.className = 'msg-row ai'; row.id = 'typing';
-  row.innerHTML = `
-    <div class="av ai">N</div>
-    <div class="bubble"><div class="typing-dots"><span></span><span></span><span></span></div></div>
-  `;
+  row.innerHTML = `<div class="av ai">N</div><div class="bubble"><div class="typing-dots"><span></span><span></span><span></span></div></div>`;
   $('chatInner').appendChild(row);
-  scroll();
-}
-
-function scroll() {
-  const s = $('chatScroll');
-  setTimeout(() => s.scrollTop = s.scrollHeight, 60);
-}
-
-function md(t) {
-  t = t.replace(/```(\w*)\n?([\s\S]*?)```/g, (_,l,c) => `<pre><code>${esc(c.trim())}</code></pre>`);
-  t = t.replace(/`([^`]+)`/g, '<code>$1</code>');
-  t = t.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-  t = t.replace(/\*(.*?)\*/g, '<em>$1</em>');
-  t = t.replace(/^### (.+)$/gm, '<h3>$1</h3>');
-  t = t.replace(/^## (.+)$/gm,  '<h2>$1</h2>');
-  t = t.replace(/^# (.+)$/gm,   '<h1>$1</h1>');
-  t = t.replace(/^[-*] (.+)/gm, '<li>$1</li>').replace(/(<li>[\s\S]*?<\/li>)+/g, '<ul>$&</ul>');
-  t = t.replace(/^\d+\. (.+)/gm, '<li>$1</li>');
-  t = t.replace(/\n\n/g, '</p><p>').replace(/\n/g, '<br>');
-  return '<p>' + t + '</p>';
-}
-
-function esc(s) {
-  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
 
 async function send() {
@@ -628,49 +338,36 @@ async function send() {
   const text = input.value.trim();
   if (!text) return;
 
-  // We no longer check for apiKey here because the server has it!
-  input.value = ''; 
-  input.style.height = 'auto';
-  busy = true; 
-  $('sendBtn').disabled = true;
-
-  history.push({ role: 'user', content: text });
+  input.value = '';
+  busy = true;
   addMsg('user', text);
   addTyping();
 
-  const sys = $('sysPrompt').value.trim();
-  const model = $('modelSelect').value;
-
   try {
-    // We send the request to your LOCAL server
     const res = await fetch('https://neurachat-xxy2.onrender.com/chat', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ 
-        model: model, 
+        model: 'google/gemini-2.0-flash-exp:free', 
         message: text,
-        systemPrompt: sys,
         history: history 
       })
     });
-
     const data = await res.json();
-    const reply = data.choices?.[0]?.message?.content || '(no response)';
-    
-    history.push({ role: 'assistant', content: reply });
+    const reply = data.choices?.[0]?.message?.content || 'No response.';
     document.getElementById('typing')?.remove();
     addMsg('ai', reply);
-
+    history.push({ role: 'user', content: text }, { role: 'assistant', content: reply });
   } catch (err) {
     document.getElementById('typing')?.remove();
-    // Error handling code here...
+    addMsg('ai', 'Error: Could not connect to the server.');
   } finally {
     busy = false;
-    $('sendBtn').disabled = false;
-    $('msgInput').focus();
   }
 }
+
+// Start the welcome screen
+clearChat();
 </script>
-</body></html>
+</body>
+</html>
