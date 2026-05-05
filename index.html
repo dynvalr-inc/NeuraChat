@@ -9,14 +9,14 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
-  --bg:       #f7f7f8;
+  --bg:        #f7f7f8;
   --surface:  #fdbcff;
   --card:     #c072ff;
-  --border:   rgba(255,255,255,0.08);
-  --border2:  rgba(255,255,255,0.14);
+  --border:    rgba(255,255,255,0.08);
+  --border2:   rgba(255,255,255,0.14);
   --text:     #0d0d10;
-  --muted:    #0d0d10;
-  --accent:   #b700ff;
+  --muted:     #0d0d10;
+  --accent:    #b700ff;
   --accent-d: #b8cc20;
   --user-bg:  #ffbbf4;
   --ai-bg:    #ffbbf4;
@@ -50,9 +50,14 @@ body {
   border-radius: 10px;
   display: flex; align-items: center; justify-content: center;
   flex-shrink: 0;
+  overflow: hidden; /* Keeps the logo inside the rounded box */
 }
 
-.logo-mark svg { width: 18px; height: 18px; }
+.logo-mark img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
 
 .brand {
   font-family: 'Syne', sans-serif;
@@ -108,10 +113,11 @@ body {
   padding: 60px 20px 40px;
 }
 
-.welcome-glyph {
-  font-size: 48px;
+.welcome-logo {
+  width: 120px;
+  height: 120px;
   margin-bottom: 18px;
-  display: block;
+  object-fit: contain;
   animation: float 4s ease-in-out infinite;
 }
 
@@ -220,7 +226,7 @@ body {
 
 @keyframes pop {
   0%,60%,100% { transform: scale(0.7); opacity: 0.4; }
-  30%          { transform: scale(1.2); opacity: 1; }
+  30%           { transform: scale(1.2); opacity: 1; }
 }
 
 /* ── INPUT ── */
@@ -272,7 +278,8 @@ body {
 
 <div class="header">
   <div class="logo-mark">
-    <svg viewBox="0 0 18 18" fill="none"><circle cx="9" cy="9" r="3.5" fill="#0a0a0b"></circle></svg>
+    <!-- Replaced the SVG circle with your new logo image -->
+    <img src="logo.png" alt="N">
   </div>
   <span class="brand">Neura<span>Chat</span></span>
   <span class="powered">via OpenRouter</span>
@@ -304,7 +311,8 @@ function clearChat() {
   history = [];
   $('chatInner').innerHTML = `
     <div class="welcome">
-      <span class="welcome-glyph">🤖</span>
+      <!-- Replaced the 🤖 emoji with your new logo image -->
+      <img src="logo.png" class="welcome-logo" alt="NeuraChat">
       <h2>Welcome to <em>NeuraChat</em></h2>
       <p>Start a new conversation!</p>
       <div class="chips">
