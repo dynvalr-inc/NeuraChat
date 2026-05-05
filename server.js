@@ -6,14 +6,27 @@ const port = 3000;
 
 app.use(cors());
 app.use(express.json());
-app.use(express.static('.')); // This serves your HTML file
+app.use(express.static('.')); 
 
 app.post('/chat', async (req, res) => {
     const userMessage = req.body.message;
-    const selectedModel = req.body.model || "google/gemini-2.0-flash-001";
-    // The server uses the secret key from .env
+    const chatHistory = req.body.history || []; // Get previous messages
+    const selectedModel = req.body.model || "google/gemini-2.0-flash-lite-001";
     const apiKey = process.env.OPENROUTER_API_KEY || "";
-    // This is where the server talks to OpenRouter for the user
+
+    // 1. Define the AI's identity
+    const systemInstruction = { 
+        role: "system", 
+        content: "Your name is NeuraChat. You are a helpful and friendly AI assistant created by Vipul. Always identify as NeuraChat." 
+    };
+
+    // 2. Combine: Identity + History + New User Message
+    const allMessages = [
+        systemInstruction,
+        ...chatHistory, 
+        { role: "user", content: userMessage }
+    ];
+
     try {
         const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
             method: "POST",
@@ -21,14 +34,15 @@ app.post('/chat', async (req, res) => {
                 "Authorization": `Bearer ${apiKey}`,
                 "Content-Type": "application/json"
             },
-	body: JSON.stringify({
-	    model: selectedModel,
-	    messages: [{ role: "user", content: userMessage }] 
-	})
+            body: JSON.stringify({
+                model: selectedModel,
+                messages: allMessages // Use the combined list here
+            })
         });
         const data = await response.json();
         res.json(data);
     } catch (error) {
+        console.error(error);
         res.status(500).send("Error connecting to API");
     }
 });
