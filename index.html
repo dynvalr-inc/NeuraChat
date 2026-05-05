@@ -354,7 +354,7 @@ async function send() {
       })
     });
     const data = await res.json();
-    const reply = data.choices?.[0]?.message?.content || 'No response.';
+    const reply = data.error?.message || data.choices?.[0]?.message?.content || 'No response.';
     document.getElementById('typing')?.remove();
     addMsg('ai', reply);
     history.push({ role: 'user', content: text }, { role: 'assistant', content: reply });
