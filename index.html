@@ -55,12 +55,13 @@ body {
   cursor: pointer;
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 10px;
   margin-bottom: 20px;
-  transition: transform 0.1s;
+  transition: all 0.2s;
 }
 
-.new-chat-btn:hover { transform: scale(1.02); background: var(--accent); color: white; }
+.new-chat-btn:hover { background: var(--accent); color: white; }
 
 .chat-list-title {
   font-size: 11px;
@@ -88,6 +89,7 @@ body {
   overflow: hidden;
   text-overflow: ellipsis;
   color: var(--text);
+  transition: background 0.2s;
 }
 
 .history-item:hover { background: rgba(255,255,255,0.3); }
@@ -98,7 +100,6 @@ body {
   display: flex;
   flex-direction: column;
   height: 100%;
-  position: relative;
 }
 
 .header {
@@ -120,7 +121,7 @@ body {
 
 /* ── WELCOME ── */
 .welcome { text-align: center; padding: 60px 20px; }
-.welcome-logo { width: 120px; animation: float 4s ease-in-out infinite; }
+.welcome-logo { width: 120px; margin-bottom: 15px; animation: float 4s ease-in-out infinite; }
 @keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
 
 /* ── INPUT ── */
@@ -146,12 +147,23 @@ body {
 /* ── MESSAGES ── */
 .msg-row { display: flex; gap: 13px; animation: slideIn 0.22s ease; }
 .msg-row.user { flex-direction: row-reverse; }
-.av { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-.av.ai { background: var(--accent); color: white; }
-.av.user { background: var(--card); }
-.bubble { max-width: 80%; padding: 12px 16px; border-radius: 16px; font-size: 14px; line-height: 1.6; }
+
+.av { 
+  width: 32px; height: 32px; 
+  border-radius: 50%; 
+  display: flex; align-items: center; justify-content: center; 
+  flex-shrink: 0; overflow: hidden;
+}
+
+.av.ai { background: white; border: 1px solid var(--border); }
+.av.ai img { width: 70%; height: 70%; object-fit: contain; }
+.av.user { background: var(--card); font-size: 18px; }
+
+.bubble { max-width: 85%; padding: 12px 16px; border-radius: 16px; font-size: 14px; line-height: 1.6; }
 .msg-row.user .bubble { background: var(--user-bg); border-radius: 16px 16px 4px 16px; }
-.msg-row.ai .bubble { background: var(--ai-bg); border-radius: 16px 16px 16px 4px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+.msg-row.ai .bubble { background: var(--ai-bg); border-radius: 16px 16px 16px 4px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+
+@keyframes slideIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; } }
 
 </style>
 </head>
@@ -159,11 +171,10 @@ body {
 
 <div class="sidebar">
   <button class="new-chat-btn" onclick="createNewChat()">
-    <span>+</span> New Chat
+    <strong>+</strong> New Chat
   </button>
   <div class="chat-list-title">Recent History</div>
-  <div class="chat-history" id="chatHistory">
-    </div>
+  <div class="chat-history" id="chatHistory"></div>
 </div>
 
 <div class="main-content">
@@ -191,14 +202,20 @@ body {
 const $ = id => document.getElementById(id);
 let history = [];
 let busy = false;
-let allChats = [];
+// LOAD HISTORY FROM LOCAL STORAGE
+let allChats = JSON.parse(localStorage.getItem('neurachat_history')) || [];
 
 function handleKey(e) { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); } }
 
+function saveToLocalStorage() {
+  localStorage.setItem('neurachat_history', JSON.stringify(allChats));
+}
+
 function createNewChat() {
   if (history.length > 0) {
-    const title = history[0].content.substring(0, 25) + "...";
+    const title = history[0].content.substring(0, 30) + "...";
     allChats.unshift({ title: title, data: [...history] });
+    saveToLocalStorage();
     updateSidebar();
   }
   history = [];
@@ -206,7 +223,7 @@ function createNewChat() {
     <div class="welcome">
       <img src="logo.png" class="welcome-logo" alt="NeuraChat">
       <h2>Welcome to <em>NeuraChat</em></h2>
-      <p>Start a fresh conversation.</p>
+      <p>Your session is ready. Ask me anything.</p>
     </div>`;
 }
 
@@ -233,7 +250,13 @@ function addMsg(role, text, scroll = true) {
   const w = document.querySelector('.welcome'); if (w) w.remove();
   const row = document.createElement('div');
   row.className = 'msg-row ' + role;
-  row.innerHTML = `<div class="av ${role}">${role === 'user' ? '😊' : 'N'}</div><div class="bubble">${text}</div>`;
+  
+  // DIFFERENT AVATARS: User gets Emoji, AI gets logo.png
+  const avatarHtml = role === 'user' 
+    ? `<div class="av user">😊</div>` 
+    : `<div class="av ai"><img src="logo.png"></div>`;
+    
+  row.innerHTML = `${avatarHtml}<div class="bubble">${text}</div>`;
   $('chatInner').appendChild(row);
   if (scroll) $('chatScroll').scrollTop = $('chatScroll').scrollHeight;
 }
@@ -259,17 +282,26 @@ async function send() {
       })
     });
     const data = await res.json();
-    const reply = data.choices?.[0]?.message?.content || 'Error.';
+    const reply = data.choices?.[0]?.message?.content || 'Service currently unavailable.';
     addMsg('ai', reply);
     history.push({ role: 'user', content: text }, { role: 'assistant', content: reply });
   } catch (err) {
-    addMsg('ai', 'Connection error.');
+    addMsg('ai', 'Connection error. Please check your server.');
   } finally {
     busy = false;
   }
 }
 
-createNewChat();
+// Initial Sidebar Update
+updateSidebar();
+// Start with a clean slate
+history = [];
+$('chatInner').innerHTML = `
+    <div class="welcome">
+      <img src="logo.png" class="welcome-logo" alt="NeuraChat">
+      <h2>Welcome to <em>NeuraChat</em></h2>
+      <p>Your session is ready. Ask me anything.</p>
+    </div>`;
 </script>
 </body>
 </html>
