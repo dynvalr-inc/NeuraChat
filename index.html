@@ -3,11 +3,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>NeuraChat — OpenRouter AI</title>
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600&family=Inter:wght@300;400;500&display=swap');
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
 ::selection { background: #4B0082; color: white; }
 
 :root {
@@ -95,6 +95,7 @@ body {
 
 .history-item:hover { background: rgba(255,255,255,0.3); }
 
+/* DELETE BUTTON STYLE */
 .delete-btn {
   opacity: 0;
   background: none;
@@ -107,14 +108,8 @@ body {
   transition: opacity 0.2s;
 }
 
-.history-item:hover .delete-btn {
-  opacity: 1;
-}
-
-.delete-btn:hover {
-  color: #ff0000;
-  transform: scale(1.2);
-}
+.history-item:hover .delete-btn { opacity: 1; }
+.delete-btn:hover { color: #ff0000; transform: scale(1.2); }
 
 /* ── MAIN CONTENT ── */
 .main-content {
@@ -166,7 +161,7 @@ body {
   display: flex; align-items: center; justify-content: center;
 }
 
-/* ── MESSAGES ── */
+/* ── MESSAGES (IMPROVED CLEAN LOOK) ── */
 .msg-row { display: flex; gap: 13px; animation: slideIn 0.22s ease; }
 .msg-row.user { flex-direction: row-reverse; }
 
@@ -181,12 +176,33 @@ body {
 .av.ai img { width: 70%; height: 70%; object-fit: contain; }
 .av.user { background: var(--card); font-size: 18px; }
 
-.bubble { max-width: 85%; padding: 12px 16px; border-radius: 16px; font-size: 14px; line-height: 1.6; }
+.bubble { 
+  max-width: 85%; 
+  padding: 12px 16px; 
+  border-radius: 16px; 
+  font-size: 14.5px; 
+  line-height: 1.6; 
+  word-wrap: break-word;
+}
+
 .msg-row.user .bubble { background: var(--user-bg); border-radius: 16px 16px 4px 16px; }
-.msg-row.ai .bubble { background: var(--ai-bg); border-radius: 16px 16px 16px 4px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+
+/* AI Specific Formatting */
+.msg-row.ai .bubble { 
+  background: var(--ai-bg); 
+  border-radius: 16px 16px 16px 4px; 
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05); 
+  color: #1a1a1a;
+}
+
+/* Style lists and spacing inside the AI response */
+.bubble p { margin-bottom: 10px; }
+.bubble p:last-child { margin-bottom: 0; }
+.bubble ul, .bubble ol { margin-left: 20px; margin-bottom: 10px; }
+.bubble li { margin-bottom: 5px; }
+.bubble strong { color: #000; font-weight: 600; }
 
 @keyframes slideIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; } }
-
 </style>
 </head>
 <body>
@@ -224,7 +240,6 @@ body {
 const $ = id => document.getElementById(id);
 let history = [];
 let busy = false;
-// LOAD HISTORY FROM LOCAL STORAGE
 let allChats = JSON.parse(localStorage.getItem('neurachat_history')) || [];
 
 function handleKey(e) { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); } }
@@ -237,6 +252,7 @@ function createNewChat() {
   if (history.length > 0) {
     const title = history[0].content.substring(0, 30) + "...";
     
+    // Prevents making a duplicate copy of the same last chat
     if (allChats.length === 0 || JSON.stringify(allChats[0].data) !== JSON.stringify(history)) {
       allChats.unshift({ title: title, data: [...history] });
       saveToLocalStorage();
@@ -261,7 +277,6 @@ function updateSidebar() {
     const item = document.createElement('div');
     item.className = 'history-item';
     
-    // Create text container
     const titleText = document.createElement('span');
     titleText.textContent = chat.title;
     titleText.style.flex = "1";
@@ -269,12 +284,11 @@ function updateSidebar() {
     titleText.style.textOverflow = "ellipsis";
     titleText.onclick = () => loadChat(index);
     
-    // Create Delete (X) button
     const delBtn = document.createElement('button');
     delBtn.className = 'delete-btn';
     delBtn.innerHTML = '×';
     delBtn.onclick = (e) => {
-      e.stopPropagation(); // Prevents loading the chat when clicking delete
+      e.stopPropagation();
       deleteChat(index);
     };
     
@@ -286,9 +300,9 @@ function updateSidebar() {
 
 function deleteChat(index) {
   if (confirm("Delete this conversation?")) {
-    allChats.splice(index, 1); // Remove from array
-    saveToLocalStorage();      // Update storage
-    updateSidebar();           // Refresh list
+    allChats.splice(index, 1);
+    saveToLocalStorage();
+    updateSidebar();
   }
 }
 
@@ -304,12 +318,14 @@ function addMsg(role, text, scroll = true) {
   const row = document.createElement('div');
   row.className = 'msg-row ' + role;
   
-  // DIFFERENT AVATARS: User gets Emoji, AI gets logo.png
   const avatarHtml = role === 'user' 
     ? `<div class="av user">😊</div>` 
     : `<div class="av ai"><img src="logo.png"></div>`;
     
-  row.innerHTML = `${avatarHtml}<div class="bubble">${text}</div>`;
+  // CLEAN RESPONSE LOGIC: Uses 'marked' for AI to show lists/bolding
+  const content = role === 'ai' ? marked.parse(text) : `<p>${text}</p>`;
+    
+  row.innerHTML = `${avatarHtml}<div class="bubble">${content}</div>`;
   $('chatInner').appendChild(row);
   if (scroll) $('chatScroll').scrollTop = $('chatScroll').scrollHeight;
 }
@@ -345,9 +361,7 @@ async function send() {
   }
 }
 
-// Initial Sidebar Update
 updateSidebar();
-// Start with a clean slate
 history = [];
 $('chatInner').innerHTML = `
     <div class="welcome">
