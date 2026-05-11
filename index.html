@@ -4,6 +4,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>NeuraChat — OpenRouter AI</title>
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/tokyo-night-dark.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600&family=Inter:wght@300;400;500&display=swap');
 
@@ -142,10 +146,22 @@ body {
 .chat-scroll { flex: 1; overflow-y: auto; padding: 28px 20px; }
 .chat-inner { max-width: 740px; margin: 0 auto; display: flex; flex-direction: column; gap: 22px; }
 
-/* ── WELCOME SCREEN CSS ── */
+/* ── WELCOME SCREEN ── */
 .welcome { text-align: center; padding: 60px 20px; display: flex; flex-direction: column; align-items: center; }
 .welcome-logo { width: 120px; height: auto; margin-bottom: 15px; animation: float 4s ease-in-out infinite; }
 @keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+
+/* ── CODE BLOCK STYLING ── */
+pre {
+  margin: 15px 0 !important;
+  border-radius: 12px !important;
+  overflow: hidden;
+  border: 1px solid rgba(0,0,0,0.1);
+}
+code {
+  font-family: 'Fira Code', 'Courier New', monospace !important;
+  font-size: 13.5px !important;
+}
 
 /* ── TYPING INDICATOR ── */
 .typing-indicator { font-style: italic; font-size: 13px; color: var(--muted); animation: pulse 1.5s infinite; }
@@ -178,48 +194,6 @@ body {
 .msg-row.ai .bubble { background: var(--ai-bg); border-radius: 16px 16px 16px 4px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); color: #1a1a1a; }
 
 @keyframes slideIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; } }
-
-/* ── CODE BLOCK STYLING ── */
-pre {
-  background: #1e1e2e; /* Sleek dark background */
-  color: #cdd6f4;
-  padding: 15px;
-  border-radius: 10px;
-  margin: 10px 0;
-  overflow-x: auto; /* Adds horizontal scroll for long lines */
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  font-family: 'Courier New', Courier, monospace;
-  line-height: 1.4;
-}
-
-code {
-  font-family: 'Courier New', Courier, monospace;
-  background: rgba(0, 0, 0, 0.05);
-  padding: 2px 4px;
-  border-radius: 4px;
-  font-size: 0.9em;
-}
-
-/* Ensure code inside pre blocks doesn't have the inline background */
-pre code {
-  background: none;
-  padding: 0;
-  border-radius: 0;
-  display: block;
-}
-
-/* Custom Scrollbar for Code Blocks */
-pre::-webkit-scrollbar {
-  height: 8px;
-}
-pre::-webkit-scrollbar-track {
-  background: #1e1e2e;
-}
-pre::-webkit-scrollbar-thumb {
-  background: #45475a;
-  border-radius: 10px;
-}
-  
 </style>
 </head>
 <body>
@@ -340,6 +314,14 @@ function addMsg(role, text, scroll = true) {
   const content = role === 'ai' ? marked.parse(text) : `<p>${text}</p>`;
   row.innerHTML = `${avatarHtml}<div class="bubble">${content}</div>`;
   $('chatInner').appendChild(row);
+  
+  // 2. TRIGGER HIGHLIGHTING ON THE NEW CONTENT
+  if (role === 'ai') {
+    row.querySelectorAll('pre code').forEach((block) => {
+      hljs.highlightElement(block);
+    });
+  }
+
   if (scroll) $('chatScroll').scrollTop = $('chatScroll').scrollHeight;
 }
 
