@@ -214,11 +214,15 @@ function saveToLocalStorage() {
 function createNewChat() {
   if (history.length > 0) {
     const title = history[0].content.substring(0, 30) + "...";
-    allChats.unshift({ title: title, data: [...history] });
-    saveToLocalStorage();
-    updateSidebar();
+    
+    if (allChats.length === 0 || JSON.stringify(allChats[0].data) !== JSON.stringify(history)) {
+      allChats.unshift({ title: title, data: [...history] });
+      saveToLocalStorage();
+      updateSidebar();
+    }
   }
-  history = [];
+
+  history = []; 
   $('chatInner').innerHTML = `
     <div class="welcome">
       <img src="logo.png" class="welcome-logo" alt="NeuraChat">
