@@ -8,30 +8,19 @@
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-/* CUSTOM HIGHLIGHT COLOR */
-::selection {
-  background: #4B0082;
-  color: white;
-}
-::-moz-selection {
-  background: #4B0082;
-  color: white;
-}
+::selection { background: #4B0082; color: white; }
 
 :root {
   --bg:        #f7f7f8;
   --surface:  #fdbcff;
+  --sidebar:  #f3a6ff;
   --card:     #c072ff;
-  --border:    rgba(255,255,255,0.08);
-  --border2:   rgba(255,255,255,0.14);
+  --border:    rgba(255,255,255,0.15);
   --text:     #0d0d10;
-  --muted:     #0d0d10;
+  --muted:     #2e004d;
   --accent:    #b700ff;
-  --accent-d: #b8cc20;
   --user-bg:  #ffbbf4;
-  --ai-bg:    #ffbbf4;
-  --code-bg:  #0d0d10;
-  --input-text: #2e004d; /* DARK PURPLE FOR TEXT */
+  --ai-bg:    #ffffff;
 }
 
 body {
@@ -40,11 +29,78 @@ body {
   color: var(--text);
   height: 100dvh;
   display: flex;
-  flex-direction: column;
   overflow: hidden;
 }
 
-/* ── HEADER ── */
+/* ── SIDEBAR ── */
+.sidebar {
+  width: 260px;
+  background: var(--sidebar);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  padding: 15px;
+  flex-shrink: 0;
+}
+
+.new-chat-btn {
+  width: 100%;
+  padding: 12px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  font-family: 'Syne', sans-serif;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 20px;
+  transition: transform 0.1s;
+}
+
+.new-chat-btn:hover { transform: scale(1.02); background: var(--accent); color: white; }
+
+.chat-list-title {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--muted);
+  margin-bottom: 10px;
+  font-weight: 700;
+}
+
+.chat-history {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.history-item {
+  padding: 10px;
+  border-radius: 6px;
+  font-size: 13px;
+  cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--text);
+}
+
+.history-item:hover { background: rgba(255,255,255,0.3); }
+
+/* ── MAIN CONTENT ── */
+.main-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  position: relative;
+}
+
 .header {
   display: flex;
   align-items: center;
@@ -52,302 +108,134 @@ body {
   padding: 14px 22px;
   background: var(--surface);
   border-bottom: 1px solid var(--border);
-  flex-shrink: 0;
 }
 
-.logo-mark {
-  width: 40px; height: 40px;
-  background: transparent;
-  display: flex; align-items: center; justify-content: center;
-  flex-shrink: 0;
-}
+.logo-mark img { width: 32px; height: 32px; object-fit: contain; }
 
-.logo-mark img {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-}
-
-.brand {
-  font-family: 'Syne', sans-serif;
-  font-size: 18px;
-  font-weight: 600;
-  letter-spacing: -0.3px;
-  color: var(--text);
-}
-
+.brand { font-family: 'Syne', sans-serif; font-size: 18px; font-weight: 600; }
 .brand span { color: var(--accent); }
 
-.online-dot {
-  width: 7px; height: 7px;
-  background: var(--accent);
-  border-radius: 50%;
-  animation: blink 2.5s ease-in-out infinite;
-}
-
-@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
-
-/* ── CHAT ── */
-.chat-scroll {
-  flex: 1;
-  overflow-y: auto;
-  padding: 28px 20px;
-  scroll-behavior: smooth;
-}
-
-.chat-scroll::-webkit-scrollbar { width: 3px; }
-.chat-scroll::-webkit-scrollbar-thumb { background: var(--card); border-radius: 4px; }
-
-.chat-inner {
-  max-width: 740px;
-  margin: 0 auto;
-  display: flex;
-  flex-direction: column;
-  gap: 22px;
-}
+.chat-scroll { flex: 1; overflow-y: auto; padding: 28px 20px; }
+.chat-inner { max-width: 740px; margin: 0 auto; display: flex; flex-direction: column; gap: 22px; }
 
 /* ── WELCOME ── */
-.welcome {
-  text-align: center;
-  padding: 60px 20px 40px;
+.welcome { text-align: center; padding: 60px 20px; }
+.welcome-logo { width: 120px; animation: float 4s ease-in-out infinite; }
+@keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+
+/* ── INPUT ── */
+.input-area { padding: 14px 20px 18px; background: var(--surface); }
+.input-box {
+  max-width: 740px; margin: 0 auto;
+  display: flex; align-items: flex-end; gap: 10px;
+  background: var(--card); border-radius: 14px; padding: 10px 14px;
 }
-
-.welcome-logo {
-  width: 140px;
-  height: 140px;
-  margin-bottom: 18px;
-  object-fit: contain;
-  animation: float 4s ease-in-out infinite;
+.input-box textarea {
+  flex: 1; background: none; border: none; color: #2e004d;
+  font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 500;
+  resize: none; outline: none; max-height: 160px;
 }
+.input-box textarea::placeholder { color: #3b0063; opacity: 0.7; }
 
-@keyframes float {
-  0%,100% { transform: translateY(0); }
-  50%      { transform: translateY(-8px); }
-}
-
-.welcome h2 {
-  font-family: 'Syne', sans-serif;
-  font-size: 28px;
-  font-weight: 600;
-  color: var(--text);
-  margin-bottom: 10px;
-  letter-spacing: -0.5px;
-}
-
-.welcome h2 em { color: var(--accent); font-style: normal; }
-
-.welcome p {
-  font-size: 15px;
-  color: var(--muted);
-  line-height: 1.7;
-  max-width: 420px;
-  margin: 0 auto 24px;
-}
-
-.chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  justify-content: center;
-}
-
-.chip {
-  background: var(--card);
-  border: 1px solid var(--border2);
-  color: var(--text);
-  padding: 10px 18px;
-  border-radius: 24px;
-  font-size: 13px;
-  cursor: pointer;
-  font-family: 'Inter', sans-serif;
-  transition: all 0.2s ease;
-}
-
-.chip:hover { 
-  border-color: var(--accent); 
-  transform: translateY(-2px);
-  background: var(--user-bg);
+.send-btn {
+  width: 38px; height: 38px; background: var(--accent);
+  border: none; border-radius: 12px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
 }
 
 /* ── MESSAGES ── */
-.msg-row {
-  display: flex;
-  gap: 13px;
-  animation: slideIn 0.22s ease;
-}
-
-@keyframes slideIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-
+.msg-row { display: flex; gap: 13px; animation: slideIn 0.22s ease; }
 .msg-row.user { flex-direction: row-reverse; }
+.av { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.av.ai { background: var(--accent); color: white; }
+.av.user { background: var(--card); }
+.bubble { max-width: 80%; padding: 12px 16px; border-radius: 16px; font-size: 14px; line-height: 1.6; }
+.msg-row.user .bubble { background: var(--user-bg); border-radius: 16px 16px 4px 16px; }
+.msg-row.ai .bubble { background: var(--ai-bg); border-radius: 16px 16px 16px 4px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
 
-.av {
-  width: 32px; height: 32px;
-  border-radius: 50%;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 14px;
-  flex-shrink: 0;
-  margin-top: 2px;
-}
-
-.av.ai   { background: var(--accent); color: #0a0a0b; font-family: 'Syne', sans-serif; font-weight: 600; font-size: 13px; }
-.av.user { background: var(--card); border: 1px solid var(--border2); }
-
-.bubble {
-  max-width: calc(100% - 54px);
-  padding: 13px 16px;
-  border-radius: 16px;
-  font-size: 14px;
-  line-height: 1.75;
-  border: 1px solid var(--border);
-}
-
-.msg-row.user .bubble {
-  background: var(--user-bg);
-  border-color: rgba(232,255,71,0.12);
-  border-radius: 16px 4px 16px 16px;
-}
-
-.msg-row.ai .bubble {
-  background: var(--ai-bg);
-  border-color: var(--border);
-  border-radius: 4px 16px 16px 16px;
-}
-
-/* ── TYPING ── */
-.typing-dots { display: flex; gap: 5px; padding: 4px 2px; align-items: center; }
-.typing-dots span {
-  width: 7px; height: 7px;
-  background: var(--accent);
-  border-radius: 50%;
-  animation: pop 1.3s ease-in-out infinite;
-}
-.typing-dots span:nth-child(2) { animation-delay: 0.18s; }
-.typing-dots span:nth-child(3) { animation-delay: 0.36s; }
-
-@keyframes pop {
-  0%,60%,100% { transform: scale(0.7); opacity: 0.4; }
-  30%           { transform: scale(1.2); opacity: 1; }
-}
-
-/* ── INPUT AREA ── */
-.input-area {
-  padding: 14px 20px 18px;
-  border-top: 1px solid var(--border);
-  background: var(--surface);
-  flex-shrink: 0;
-}
-
-.input-box {
-  max-width: 740px;
-  margin: 0 auto;
-  display: flex;
-  align-items: flex-end;
-  gap: 10px;
-  background: var(--card);
-  border: 1px solid var(--border2);
-  border-radius: 14px;
-  padding: 10px 14px;
-}
-
-.input-box textarea {
-  flex: 1;
-  background: none;
-  border: none;
-  color: var(--input-text); /* DARKER TEXT WHEN TYPING */
-  font-family: 'Inter', sans-serif;
-  font-size: 14px;
-  font-weight: 500;
-  line-height: 1.55;
-  resize: none;
-  outline: none;
-  max-height: 160px;
-}
-
-/* DARKER PLACEHOLDER TEXT */
-.input-box textarea::placeholder {
-  color: #3b0063; 
-  opacity: 0.7;
-}
-
-.send-btn {
-  width: 38px; height: 38px;
-  background: var(--accent);
-  border: none;
-  border-radius: 12px;
-  cursor: pointer;
-  display: flex; align-items: center; justify-content: center;
-  transition: opacity 0.2s;
-}
-
-.send-btn:hover { opacity: 0.85; }
-
-.footer-note { font-size: 11px; color: var(--muted); text-align: center; margin-top: 7px; }
 </style>
 </head>
 <body>
 
-<div class="header">
-  <div class="logo-mark">
-    <img src="logo.png" alt="N">
-  </div>
-  <span class="brand">Neura<span>Chat</span></span>
-  <div class="online-dot"></div>
+<div class="sidebar">
+  <button class="new-chat-btn" onclick="createNewChat()">
+    <span>+</span> New Chat
+  </button>
+  <div class="chat-list-title">Recent History</div>
+  <div class="chat-history" id="chatHistory">
+    </div>
 </div>
 
-<div class="chat-scroll" id="chatScroll">
-  <div class="chat-inner" id="chatInner"></div>
-</div>
-
-<div class="input-area">
-  <div class="input-box">
-    <textarea id="msgInput" placeholder="Type a message..." rows="1" onkeydown="handleKey(event)"></textarea>
-    <button class="send-btn" id="sendBtn" onclick="send()">
-      <svg viewBox="0 0 24 24" width="18" height="18" fill="white"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"></path></svg>
-    </button>
+<div class="main-content">
+  <div class="header">
+    <div class="logo-mark"><img src="logo.png" alt="N"></div>
+    <span class="brand">Neura<span>Chat</span></span>
   </div>
-  <div class="footer-note">By DYNVALR</div>
+
+  <div class="chat-scroll" id="chatScroll">
+    <div class="chat-inner" id="chatInner"></div>
+  </div>
+
+  <div class="input-area">
+    <div class="input-box">
+      <textarea id="msgInput" placeholder="Type a message..." rows="1" onkeydown="handleKey(event)"></textarea>
+      <button class="send-btn" onclick="send()">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="white"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"></path></svg>
+      </button>
+    </div>
+    <div style="font-size: 10px; text-align: center; margin-top: 8px; color: var(--muted)">By DYNVALR</div>
+  </div>
 </div>
 
 <script>
 const $ = id => document.getElementById(id);
 let history = [];
 let busy = false;
+let allChats = [];
 
 function handleKey(e) { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); } }
 
-function clearChat() {
+function createNewChat() {
+  if (history.length > 0) {
+    const title = history[0].content.substring(0, 25) + "...";
+    allChats.unshift({ title: title, data: [...history] });
+    updateSidebar();
+  }
   history = [];
   $('chatInner').innerHTML = `
     <div class="welcome">
       <img src="logo.png" class="welcome-logo" alt="NeuraChat">
       <h2>Welcome to <em>NeuraChat</em></h2>
-      <p>Start a new conversation!</p>
-      <div class="chips">
-        <button class="chip" onclick="chip(this)">What can you do?</button>
-        <button class="chip" onclick="chip(this)">Write me a poem</button>
-      </div>
+      <p>Start a fresh conversation.</p>
     </div>`;
 }
 
-function chip(btn) { $('msgInput').value = btn.textContent; send(); }
+function updateSidebar() {
+  const container = $('chatHistory');
+  container.innerHTML = '';
+  allChats.forEach((chat, index) => {
+    const item = document.createElement('div');
+    item.className = 'history-item';
+    item.textContent = chat.title;
+    item.onclick = () => loadChat(index);
+    container.appendChild(item);
+  });
+}
 
-function addMsg(role, text) {
+function loadChat(index) {
+  const chat = allChats[index];
+  history = [...chat.data];
+  $('chatInner').innerHTML = '';
+  history.forEach(msg => addMsg(msg.role === 'user' ? 'user' : 'ai', msg.content, false));
+}
+
+function addMsg(role, text, scroll = true) {
   const w = document.querySelector('.welcome'); if (w) w.remove();
   const row = document.createElement('div');
   row.className = 'msg-row ' + role;
-  row.innerHTML = `<div class="av ${role}">${role === 'user' ? '😊' : 'N'}</div><div class="bubble"><p>${text}</p></div>`;
+  row.innerHTML = `<div class="av ${role}">${role === 'user' ? '😊' : 'N'}</div><div class="bubble">${text}</div>`;
   $('chatInner').appendChild(row);
-  $('chatScroll').scrollTop = $('chatScroll').scrollHeight;
-}
-
-function addTyping() {
-  const row = document.createElement('div');
-  row.className = 'msg-row ai'; row.id = 'typing';
-  row.innerHTML = `<div class="av ai">N</div><div class="bubble"><div class="typing-dots"><span></span><span></span><span></span></div></div>`;
-  $('chatInner').appendChild(row);
+  if (scroll) $('chatScroll').scrollTop = $('chatScroll').scrollHeight;
 }
 
 async function send() {
@@ -359,7 +247,6 @@ async function send() {
   input.value = '';
   busy = true;
   addMsg('user', text);
-  addTyping();
 
   try {
     const res = await fetch('https://neurachat-xxy2.onrender.com/chat', {
@@ -372,20 +259,17 @@ async function send() {
       })
     });
     const data = await res.json();
-    const reply = data.error?.message || data.choices?.[0]?.message?.content || 'No response.';
-    document.getElementById('typing')?.remove();
+    const reply = data.choices?.[0]?.message?.content || 'Error.';
     addMsg('ai', reply);
     history.push({ role: 'user', content: text }, { role: 'assistant', content: reply });
   } catch (err) {
-    document.getElementById('typing')?.remove();
-    addMsg('ai', 'Error: Could not connect to the server.');
+    addMsg('ai', 'Connection error.');
   } finally {
     busy = false;
   }
 }
 
-// Start the welcome screen
-clearChat();
+createNewChat();
 </script>
 </body>
 </html>
