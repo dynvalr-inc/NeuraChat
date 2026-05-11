@@ -344,7 +344,16 @@ async function send() {
 }
 
 updateSidebar();
-createNewChat();
+
+// Only show welcome if there is no current history being loaded
+if (history.length === 0) {
+  $('chatInner').innerHTML = `
+    <div class="welcome">
+      <img src="logo.png" class="welcome-logo" alt="NeuraChat">
+      <h2>Welcome to <em>NeuraChat</em></h2>
+      <p>Your session is ready. Ask me anything.</p>
+    </div>`;
+}
 </script>
 </body>
 </html>
