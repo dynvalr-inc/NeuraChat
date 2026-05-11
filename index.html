@@ -81,18 +81,40 @@ body {
 }
 
 .history-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   padding: 10px;
   border-radius: 6px;
   font-size: 13px;
   cursor: pointer;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
   color: var(--text);
   transition: background 0.2s;
+  position: relative;
 }
 
 .history-item:hover { background: rgba(255,255,255,0.3); }
+
+.delete-btn {
+  opacity: 0;
+  background: none;
+  border: none;
+  color: #8b0000;
+  font-weight: bold;
+  font-size: 14px;
+  cursor: pointer;
+  padding: 0 5px;
+  transition: opacity 0.2s;
+}
+
+.history-item:hover .delete-btn {
+  opacity: 1;
+}
+
+.delete-btn:hover {
+  color: #ff0000;
+  transform: scale(1.2);
+}
 
 /* ── MAIN CONTENT ── */
 .main-content {
@@ -165,42 +187,6 @@ body {
 
 @keyframes slideIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; } }
 
-.history-item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 10px;
-  border-radius: 6px;
-  font-size: 13px;
-  cursor: pointer;
-  color: var(--text);
-  transition: background 0.2s;
-  position: relative;
-}
-
-.history-item:hover { background: rgba(255,255,255,0.3); }
-
-.delete-btn {
-  opacity: 0;
-  background: none;
-  border: none;
-  color: #8b0000;
-  font-weight: bold;
-  font-size: 14px;
-  cursor: pointer;
-  padding: 0 5px;
-  transition: opacity 0.2s;
-}
-
-.history-item:hover .delete-btn {
-  opacity: 1;
-}
-
-.delete-btn:hover {
-  color: #ff0000;
-  transform: scale(1.2);
-}
-
 </style>
 </head>
 <body>
@@ -270,13 +256,40 @@ function createNewChat() {
 function updateSidebar() {
   const container = $('chatHistory');
   container.innerHTML = '';
+  
   allChats.forEach((chat, index) => {
     const item = document.createElement('div');
     item.className = 'history-item';
-    item.textContent = chat.title;
-    item.onclick = () => loadChat(index);
+    
+    // Create text container
+    const titleText = document.createElement('span');
+    titleText.textContent = chat.title;
+    titleText.style.flex = "1";
+    titleText.style.overflow = "hidden";
+    titleText.style.textOverflow = "ellipsis";
+    titleText.onclick = () => loadChat(index);
+    
+    // Create Delete (X) button
+    const delBtn = document.createElement('button');
+    delBtn.className = 'delete-btn';
+    delBtn.innerHTML = '×';
+    delBtn.onclick = (e) => {
+      e.stopPropagation(); // Prevents loading the chat when clicking delete
+      deleteChat(index);
+    };
+    
+    item.appendChild(titleText);
+    item.appendChild(delBtn);
     container.appendChild(item);
   });
+}
+
+function deleteChat(index) {
+  if (confirm("Delete this conversation?")) {
+    allChats.splice(index, 1); // Remove from array
+    saveToLocalStorage();      // Update storage
+    updateSidebar();           // Refresh list
+  }
 }
 
 function loadChat(index) {
