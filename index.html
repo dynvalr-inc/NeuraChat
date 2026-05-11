@@ -178,6 +178,48 @@ body {
 .msg-row.ai .bubble { background: var(--ai-bg); border-radius: 16px 16px 16px 4px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); color: #1a1a1a; }
 
 @keyframes slideIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; } }
+
+/* ── CODE BLOCK STYLING ── */
+pre {
+  background: #1e1e2e; /* Sleek dark background */
+  color: #cdd6f4;
+  padding: 15px;
+  border-radius: 10px;
+  margin: 10px 0;
+  overflow-x: auto; /* Adds horizontal scroll for long lines */
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  font-family: 'Courier New', Courier, monospace;
+  line-height: 1.4;
+}
+
+code {
+  font-family: 'Courier New', Courier, monospace;
+  background: rgba(0, 0, 0, 0.05);
+  padding: 2px 4px;
+  border-radius: 4px;
+  font-size: 0.9em;
+}
+
+/* Ensure code inside pre blocks doesn't have the inline background */
+pre code {
+  background: none;
+  padding: 0;
+  border-radius: 0;
+  display: block;
+}
+
+/* Custom Scrollbar for Code Blocks */
+pre::-webkit-scrollbar {
+  height: 8px;
+}
+pre::-webkit-scrollbar-track {
+  background: #1e1e2e;
+}
+pre::-webkit-scrollbar-thumb {
+  background: #45475a;
+  border-radius: 10px;
+}
+  
 </style>
 </head>
 <body>
