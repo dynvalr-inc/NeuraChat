@@ -141,17 +141,33 @@ body {
 .welcome-logo { width: 120px; margin-bottom: 15px; animation: float 4s ease-in-out infinite; }
 @keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
 
-/* ── INPUT ── */
+/* ── INPUT (EXPANDING BOX MODS) ── */
 .input-area { padding: 14px 20px 18px; background: var(--surface); }
 .input-box {
-  max-width: 740px; margin: 0 auto;
-  display: flex; align-items: flex-end; gap: 10px;
-  background: var(--card); border-radius: 14px; padding: 10px 14px;
+  max-width: 740px; 
+  margin: 0 auto;
+  display: flex; 
+  align-items: flex-end; 
+  gap: 10px;
+  background: var(--card); 
+  border-radius: 14px; 
+  padding: 10px 14px;
+  transition: height 0.1s ease;
 }
 .input-box textarea {
-  flex: 1; background: none; border: none; color: #2e004d;
-  font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 500;
-  resize: none; outline: none; max-height: 160px;
+  flex: 1; 
+  background: none; 
+  border: none; 
+  color: #2e004d;
+  font-family: 'Inter', sans-serif; 
+  font-size: 14px; 
+  font-weight: 500;
+  resize: none; 
+  outline: none; 
+  max-height: 200px; 
+  min-height: 20px;
+  line-height: 1.5;
+  overflow-y: hidden; 
 }
 .input-box textarea::placeholder { color: #3b0063; opacity: 0.7; }
 
@@ -161,7 +177,7 @@ body {
   display: flex; align-items: center; justify-content: center;
 }
 
-/* ── MESSAGES (IMPROVED CLEAN LOOK) ── */
+/* ── MESSAGES ── */
 .msg-row { display: flex; gap: 13px; animation: slideIn 0.22s ease; }
 .msg-row.user { flex-direction: row-reverse; }
 
@@ -187,7 +203,6 @@ body {
 
 .msg-row.user .bubble { background: var(--user-bg); border-radius: 16px 16px 4px 16px; }
 
-/* AI Specific Formatting */
 .msg-row.ai .bubble { 
   background: var(--ai-bg); 
   border-radius: 16px 16px 16px 4px; 
@@ -195,7 +210,6 @@ body {
   color: #1a1a1a;
 }
 
-/* Style lists and spacing inside the AI response */
 .bubble p { margin-bottom: 10px; }
 .bubble p:last-child { margin-bottom: 0; }
 .bubble ul, .bubble ol { margin-left: 20px; margin-bottom: 10px; }
@@ -227,7 +241,7 @@ body {
 
   <div class="input-area">
     <div class="input-box">
-      <textarea id="msgInput" placeholder="Type a message..." rows="1" onkeydown="handleKey(event)"></textarea>
+      <textarea id="msgInput" placeholder="Type a message..." rows="1" onkeydown="handleKey(event)" oninput="autoResize()"></textarea>
       <button class="send-btn" onclick="send()">
         <svg viewBox="0 0 24 24" width="18" height="18" fill="white"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"></path></svg>
       </button>
@@ -248,18 +262,28 @@ function saveToLocalStorage() {
   localStorage.setItem('neurachat_history', JSON.stringify(allChats));
 }
 
+// NEW AUTO-RESIZE FUNCTION
+function autoResize() {
+  const textarea = $('msgInput');
+  textarea.style.height = 'auto';
+  textarea.style.height = textarea.scrollHeight + 'px';
+  
+  if (textarea.scrollHeight > 200) {
+    textarea.style.overflowY = 'auto';
+  } else {
+    textarea.style.overflowY = 'hidden';
+  }
+}
+
 function createNewChat() {
   if (history.length > 0) {
     const title = history[0].content.substring(0, 30) + "...";
-    
-    // Prevents making a duplicate copy of the same last chat
     if (allChats.length === 0 || JSON.stringify(allChats[0].data) !== JSON.stringify(history)) {
       allChats.unshift({ title: title, data: [...history] });
       saveToLocalStorage();
       updateSidebar();
     }
   }
-
   history = []; 
   $('chatInner').innerHTML = `
     <div class="welcome">
@@ -272,18 +296,15 @@ function createNewChat() {
 function updateSidebar() {
   const container = $('chatHistory');
   container.innerHTML = '';
-  
   allChats.forEach((chat, index) => {
     const item = document.createElement('div');
     item.className = 'history-item';
-    
     const titleText = document.createElement('span');
     titleText.textContent = chat.title;
     titleText.style.flex = "1";
     titleText.style.overflow = "hidden";
     titleText.style.textOverflow = "ellipsis";
     titleText.onclick = () => loadChat(index);
-    
     const delBtn = document.createElement('button');
     delBtn.className = 'delete-btn';
     delBtn.innerHTML = '×';
@@ -291,7 +312,6 @@ function updateSidebar() {
       e.stopPropagation();
       deleteChat(index);
     };
-    
     item.appendChild(titleText);
     item.appendChild(delBtn);
     container.appendChild(item);
@@ -317,14 +337,10 @@ function addMsg(role, text, scroll = true) {
   const w = document.querySelector('.welcome'); if (w) w.remove();
   const row = document.createElement('div');
   row.className = 'msg-row ' + role;
-  
   const avatarHtml = role === 'user' 
     ? `<div class="av user">😊</div>` 
     : `<div class="av ai"><img src="logo.png"></div>`;
-    
-  // CLEAN RESPONSE LOGIC: Uses 'marked' for AI to show lists/bolding
   const content = role === 'ai' ? marked.parse(text) : `<p>${text}</p>`;
-    
   row.innerHTML = `${avatarHtml}<div class="bubble">${content}</div>`;
   $('chatInner').appendChild(row);
   if (scroll) $('chatScroll').scrollTop = $('chatScroll').scrollHeight;
@@ -337,6 +353,7 @@ async function send() {
   if (!text) return;
 
   input.value = '';
+  input.style.height = 'auto'; // SHRINK BOX BACK AFTER SENDING
   busy = true;
   addMsg('user', text);
 
