@@ -285,21 +285,28 @@ function editMsg(btn) {
   const p = row.querySelector('.bubble p');
   if(!p) return;
   
-  // 1. Move text to input
+  // 1. Move your text back to the input box
   const originalText = p.innerText;
   const input = $('msgInput');
   input.value = originalText;
   input.focus();
   autoResize();
 
-  // 2. Remove from Chat History (so the AI doesn't remember the "wrong" version)
+  // 2. Find the AI response that came after this message
+  const nextRow = row.nextElementSibling;
+
+  // 3. Clean up the History (so AI doesn't get confused)
   const index = Array.from($('chatInner').children).indexOf(row);
   if (index !== -1) {
-    history.splice(index, 1); 
+    // Remove both your message and the AI's reply from the background history
+    history.splice(index, 2); 
   }
 
-  // 3. Remove the message bubble from the screen
-  row.remove();
+  // 4. Remove both bubbles from the screen
+  row.remove(); // Removes your message
+  if (nextRow && nextRow.classList.contains('ai')) {
+    nextRow.remove(); // Removes the AI's old response
+  }
 }
 
 function addMsg(role, text, scroll = true) {
