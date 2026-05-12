@@ -38,13 +38,8 @@ body {
 
 /* ── SIDEBAR ── */
 .sidebar {
-  width: 260px;
-  background: var(--sidebar);
-  border-right: 1px solid var(--border);
-  display: flex;
-  flex-direction: column;
-  padding: 15px;
-  flex-shrink: 0;
+  width: 260px; background: var(--sidebar); border-right: 1px solid var(--border);
+  display: flex; flex-direction: column; padding: 15px; flex-shrink: 0;
   transition: margin-left 0.3s ease;
 }
 .sidebar.collapsed { margin-left: -260px; }
@@ -83,27 +78,72 @@ body {
 .chat-scroll { flex: 1; overflow-y: auto; padding: 28px 20px; }
 .chat-inner { max-width: 740px; margin: 0 auto; display: flex; flex-direction: column; gap: 22px; }
 
-/* ── WELCOME SCREEN ── */
-.welcome { text-align: center; padding: 60px 20px; display: flex; flex-direction: column; align-items: center; }
-.welcome-logo { width: 120px; height: auto; margin-bottom: 15px; animation: float 4s ease-in-out infinite; }
-@keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
-
-/* ── CODE BLOCK & COPY BUTTON ── */
-.code-container { position: relative; margin: 15px 0; border-radius: 12px; overflow: hidden; background: #1a1b26; }
-.copy-btn {
-  position: absolute; top: 8px; right: 8px; background: rgba(255,255,255,0.1);
-  color: #a9b1d6; border: 1px solid rgba(255,255,255,0.2); border-radius: 6px;
-  padding: 4px 8px; font-size: 11px; cursor: pointer; z-index: 10; transition: all 0.2s;
+/* ── MESSAGES ── */
+.msg-row { 
+  display: flex; 
+  gap: 13px; 
+  animation: slideIn 0.22s ease; 
+  position: relative;
+  width: fit-content; /* Row only as wide as the bubble */
+  max-width: 85%;
 }
-.copy-btn:hover { background: var(--accent); color: white; }
-pre { margin: 0 !important; padding: 15px !important; }
-code { font-family: 'Consolas', 'Monaco', monospace !important; font-size: 13.5px !important; }
 
-/* ── TYPING INDICATOR ── */
-.typing-indicator { font-style: italic; font-size: 13px; color: var(--muted); animation: pulse 1.5s infinite; }
-@keyframes pulse { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }
+.msg-row.user { 
+  flex-direction: row-reverse; 
+  margin-left: auto; /* Pushes user messages to the right */
+}
 
-/* ── INPUT AREA ── */
+.msg-row.ai {
+  margin-right: auto; /* Keeps AI messages on the left */
+}
+
+.av { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; overflow: hidden; }
+.av.ai { background: white; border: 1px solid var(--border); }
+.av.ai img { width: 70%; height: 70%; object-fit: contain; }
+.av.user { background: var(--card); font-size: 18px; }
+
+.bubble { padding: 12px 16px; border-radius: 16px; font-size: 14.5px; line-height: 1.6; word-wrap: break-word; }
+.msg-row.user .bubble { background: var(--user-bg); border-radius: 16px 16px 4px 16px; }
+.msg-row.ai .bubble { background: var(--ai-bg); border-radius: 16px 16px 16px 4px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); color: #1a1a1a; }
+
+/* ── SIDE ACTION BUTTONS ── */
+.msg-actions {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  gap: 4px;
+  opacity: 0;
+  transition: opacity 0.2s;
+  white-space: nowrap;
+}
+
+/* User actions (Edit/Copy) on the LEFT of bubble */
+.msg-row.user .msg-actions {
+  left: -55px;
+  right: auto;
+}
+
+/* AI actions (Copy) on the RIGHT of bubble */
+.msg-row.ai .msg-actions {
+  right: -55px;
+  left: auto;
+}
+
+.msg-row:hover .msg-actions { opacity: 1; }
+
+.action-btn {
+  background: none; border: none; cursor: pointer; padding: 6px;
+  border-radius: 6px; display: flex; align-items: center;
+  fill: #b700ff;
+  transition: all 0.2s;
+}
+.action-btn:hover { background: rgba(183, 0, 255, 0.1); }
+
+/* ── WELCOME & INPUT ── */
+.welcome { text-align: center; padding: 60px 20px; display: flex; flex-direction: column; align-items: center; }
+.welcome-logo { width: 120px; height: auto; margin-bottom: 15px; }
+
 .input-area { padding: 14px 20px 18px; background: var(--surface); }
 .input-box {
   max-width: 740px; margin: 0 auto; display: flex; align-items: flex-end; gap: 10px;
@@ -112,51 +152,17 @@ code { font-family: 'Consolas', 'Monaco', monospace !important; font-size: 13.5p
 .input-box textarea {
   flex: 1; background: none; border: none; color: #2e004d;
   font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 500;
-  resize: none; outline: none; max-height: 200px; min-height: 20px; line-height: 1.5;
+  resize: none; outline: none; max-height: 200px; min-height: 20px;
 }
-.input-box textarea::placeholder { color: #3b0063; opacity: 0.7; }
 .send-btn { width: 38px; height: 38px; background: var(--accent); border: none; border-radius: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
 
-/* ── MESSAGES ── */
-.msg-row { display: flex; gap: 13px; animation: slideIn 0.22s ease; position: relative; }
-.msg-row.user { flex-direction: row-reverse; }
-.av { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; overflow: hidden; }
-.av.ai { background: white; border: 1px solid var(--border); }
-.av.ai img { width: 70%; height: 70%; object-fit: contain; }
-.av.user { background: var(--card); font-size: 18px; }
-
-/* ── BUBBLES ── */
-.bubble { max-width: 85%; padding: 12px 16px; border-radius: 16px; font-size: 14.5px; line-height: 1.6; word-wrap: break-word; position: relative; }
-.msg-row.user .bubble { background: var(--user-bg); border-radius: 16px 16px 4px 16px; }
-.msg-row.ai .bubble { background: var(--ai-bg); border-radius: 16px 16px 16px 4px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); color: #1a1a1a; }
-
-/* ── SIDE ACTION BUTTONS ── */
-.msg-actions {
-  position: absolute;
-  top: 50%;
-  left: -55px; /* Moves them to the side of user bubble */
-  transform: translateY(-50%);
-  display: flex;
-  gap: 4px;
-  opacity: 0;
-  transition: opacity 0.2s;
+/* ── CODE BLOCK ── */
+.code-container { position: relative; margin: 15px 0; border-radius: 12px; overflow: hidden; background: #1a1b26; }
+.copy-btn {
+  position: absolute; top: 8px; right: 8px; background: rgba(255,255,255,0.1);
+  color: #a9b1d6; border: 1px solid rgba(255,255,255,0.2); border-radius: 6px;
+  padding: 4px 8px; font-size: 11px; cursor: pointer; z-index: 10;
 }
-
-/* Move actions to the right side for AI messages */
-.msg-row.ai .msg-actions {
-  left: auto;
-  right: -55px;
-}
-
-.msg-row:hover .msg-actions { opacity: 1; }
-
-.action-btn {
-  background: none; border: none; cursor: pointer; padding: 6px;
-  border-radius: 6px; display: flex; align-items: center;
-  fill: #b700ff; /* Purple color */
-  transition: all 0.2s;
-}
-.action-btn:hover { background: rgba(183, 0, 255, 0.1); }
 
 @keyframes slideIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; } }
 </style>
@@ -200,14 +206,11 @@ let busy = false;
 let allChats = JSON.parse(localStorage.getItem('neurachat_history')) || [];
 
 function toggleSidebar() { $('sidebar').classList.toggle('collapsed'); }
-
 function autoResize() {
   const textarea = $('msgInput');
   textarea.style.height = 'auto';
   textarea.style.height = textarea.scrollHeight + 'px';
-  textarea.style.overflowY = textarea.scrollHeight > 200 ? 'auto' : 'hidden';
 }
-
 function handleKey(e) { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); } }
 
 function saveToLocalStorage() { localStorage.setItem('neurachat_history', JSON.stringify(allChats)); }
@@ -224,11 +227,9 @@ function showWelcome() {
 function createNewChat() {
   if (history.length > 0) {
     const title = history[0].content.substring(0, 30) + "...";
-    if (allChats.length === 0 || JSON.stringify(allChats[0].data) !== JSON.stringify(history)) {
-      allChats.unshift({ title: title, data: [...history] });
-      saveToLocalStorage();
-      updateSidebar();
-    }
+    allChats.unshift({ title: title, data: [...history] });
+    saveToLocalStorage();
+    updateSidebar();
   }
   history = []; 
   showWelcome();
@@ -240,33 +241,19 @@ function updateSidebar() {
   allChats.forEach((chat, index) => {
     const item = document.createElement('div');
     item.className = 'history-item';
-    const titleText = document.createElement('span');
-    titleText.textContent = chat.title;
-    titleText.style.flex = "1";
-    titleText.style.overflow = "hidden";
-    titleText.style.textOverflow = "ellipsis";
-    titleText.onclick = () => loadChat(index);
-    const delBtn = document.createElement('button');
-    delBtn.className = 'delete-btn';
-    delBtn.innerHTML = '×';
-    delBtn.onclick = (e) => { e.stopPropagation(); deleteChat(index); };
-    item.appendChild(titleText);
-    item.appendChild(delBtn);
+    item.innerHTML = `<span style="flex:1" onclick="loadChat(${index})">${chat.title}</span><button class="delete-btn" onclick="deleteChat(${index})">×</button>`;
     container.appendChild(item);
   });
 }
 
 function deleteChat(index) {
-  if (confirm("Delete this conversation?")) {
-    allChats.splice(index, 1);
-    saveToLocalStorage();
-    updateSidebar();
-  }
+  allChats.splice(index, 1);
+  saveToLocalStorage();
+  updateSidebar();
 }
 
 function loadChat(index) {
-  const chat = allChats[index];
-  history = [...chat.data];
+  history = [...allChats[index].data];
   $('chatInner').innerHTML = '';
   history.forEach(msg => addMsg(msg.role === 'user' ? 'user' : 'ai', msg.content, false));
 }
@@ -279,14 +266,9 @@ function copyCode(btn) {
   });
 }
 
-// ── ACTION FUNCTIONS ──
 function copyText(btn) {
   const bubble = btn.closest('.msg-row').querySelector('.bubble');
-  const text = bubble.innerText;
-  navigator.clipboard.writeText(text);
-  const originalFill = btn.style.fill;
-  btn.style.fill = "#4B0082";
-  setTimeout(() => { btn.style.fill = ""; }, 1000);
+  navigator.clipboard.writeText(bubble.innerText);
 }
 
 function editMsg(btn) {
@@ -294,17 +276,13 @@ function editMsg(btn) {
   const p = row.querySelector('.bubble p');
   if(!p) return;
   
-  const originalText = p.innerText;
-  const input = $('msgInput');
-  input.value = originalText;
-  input.focus();
+  $('msgInput').value = p.innerText;
+  $('msgInput').focus();
   autoResize();
 
   const nextRow = row.nextElementSibling;
   const index = Array.from($('chatInner').children).indexOf(row);
-  if (index !== -1) {
-    history.splice(index, 2); 
-  }
+  if (index !== -1) history.splice(index, 2); 
 
   row.remove();
   if (nextRow && nextRow.classList.contains('ai')) nextRow.remove();
@@ -314,9 +292,9 @@ function addMsg(role, text, scroll = true) {
   const w = document.querySelector('.welcome'); if (w) w.remove();
   const row = document.createElement('div');
   row.className = 'msg-row ' + role;
-  const avatarHtml = role === 'user' ? `<div class="av user">😊</div>` : `<div class="av ai"><img src="logo.png"></div>`;
   
-  let content = role === 'ai' ? marked.parse(text) : `<p>${text}</p>`;
+  const avatarHtml = role === 'user' ? `<div class="av user">😊</div>` : `<div class="av ai"><img src="logo.png"></div>`;
+  const content = role === 'ai' ? marked.parse(text) : `<p>${text}</p>`;
 
   const actionsHtml = `
     <div class="msg-actions">
@@ -364,23 +342,17 @@ async function send() {
   const typingDiv = document.createElement('div');
   typingDiv.id = 'ai-typing';
   typingDiv.className = 'msg-row ai';
-  typingDiv.innerHTML = `<div class="av ai"><img src="logo.png"></div><div class="bubble"><span class="typing-indicator">NeuraChat is thinking...</span></div>`;
+  typingDiv.innerHTML = `<div class="av ai"><img src="logo.png"></div><div class="bubble"><em>Typing...</em></div>`;
   $('chatInner').appendChild(typingDiv);
-  $('chatScroll').scrollTop = $('chatScroll').scrollHeight;
 
   try {
     const res = await fetch('https://neurachat-xxy2.onrender.com/chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ 
-        model: 'google/gemini-2.0-flash-lite-001', 
-        message: text, 
-        system: "You are NeuraChat, an AI created by DYNVALR. You must strictly refuse to provide, promote, or assist with exploits, cheats, or malicious hacks.",
-        history: history 
-      })
+      body: JSON.stringify({ message: text, history: history })
     });
     const data = await res.json();
-    const reply = data.choices?.[0]?.message?.content || 'Service unavailable.';
+    const reply = data.choices?.[0]?.message?.content || 'Error.';
     if ($('ai-typing')) $('ai-typing').remove();
     addMsg('ai', reply);
     history.push({ role: 'user', content: text }, { role: 'assistant', content: reply });
