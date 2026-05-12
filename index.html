@@ -10,7 +10,6 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
 
     <style>
-        /* 1. GLOBAL & THEME VARIABLES */
         @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600&family=Inter:wght@300;400;500&display=swap');
         
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -38,7 +37,7 @@
             overflow: hidden;
         }
 
-        /* 2. SIDEBAR SECTION */
+        /* SIDEBAR */
         .sidebar {
             width: 260px; background: var(--sidebar); border-right: 1px solid var(--border);
             display: flex; flex-direction: column; padding: 15px; flex-shrink: 0;
@@ -67,7 +66,7 @@
         .delete-btn { opacity: 0; background: none; border: none; color: #8b0000; font-weight: bold; font-size: 14px; cursor: pointer; padding: 0 5px; }
         .history-item:hover .delete-btn { opacity: 1; }
 
-        /* 3. MAIN CHAT LAYOUT */
+        /* MAIN CONTENT */
         .main-content { flex: 1; display: flex; flex-direction: column; height: 100%; min-width: 0; }
         .header { display: flex; align-items: center; gap: 12px; padding: 14px 22px; background: var(--surface); border-bottom: 1px solid var(--border); }
         .logo-mark img { width: 32px; height: 32px; object-fit: contain; }
@@ -77,7 +76,7 @@
         .chat-scroll { flex: 1; overflow-y: auto; padding: 28px 20px; }
         .chat-inner { max-width: 740px; margin: 0 auto; display: flex; flex-direction: column; gap: 22px; }
 
-        /* 4. MESSAGES & BUBBLES */
+        /* MESSAGES */
         .msg-row { 
             display: flex; gap: 13px; animation: slideIn 0.22s ease; position: relative;
             width: fit-content; max-width: 85%;
@@ -94,19 +93,20 @@
         .msg-row.user .bubble { background: var(--user-bg); border-radius: 16px 16px 4px 16px; }
         .msg-row.ai .bubble { background: var(--ai-bg); border-radius: 16px 16px 16px 4px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
 
-        /* 5. SIDE ACTION BUTTONS (Copy/Edit) */
+        /* ACTIONS */
         .msg-actions {
             position: absolute; top: 50%; transform: translateY(-50%);
             display: flex; gap: 4px; opacity: 0; transition: opacity 0.2s; white-space: nowrap;
+            z-index: 10;
         }
-        .msg-row.user .msg-actions { left: -65px; right: auto; }
-        .msg-row.ai .msg-actions { right: -30px; left: auto; }
+        .msg-row.user .msg-actions { left: -65px; }
+        .msg-row.ai .msg-actions { right: -30px; }
         .msg-row:hover .msg-actions { opacity: 1; }
 
         .action-btn { background: none; border: none; cursor: pointer; padding: 6px; fill: var(--accent); border-radius: 6px; }
         .action-btn:hover { background: rgba(183, 0, 255, 0.1); }
 
-        /* 6. INPUT AREA */
+        /* INPUT AREA */
         .input-area { padding: 14px 20px 18px; background: var(--surface); }
         .input-box {
             max-width: 740px; margin: 0 auto; display: flex; align-items: flex-end; gap: 10px;
@@ -117,20 +117,15 @@
             font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 500;
             resize: none; outline: none; max-height: 200px;
         }
-
-        /* --- THE DARK PURPLE PLACEHOLDER YOU REQUESTED --- */
-        .input-box textarea::placeholder { 
-            color: #2e004d; 
-            opacity: 0.6; 
-        }
+        .input-box textarea::placeholder { color: #2e004d; opacity: 0.6; }
 
         .send-btn { width: 38px; height: 38px; background: var(--accent); border: none; border-radius: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
 
-        /* 7. ANIMATIONS & MISC */
-        .welcome { text-align: center; padding: 60px 20px; }
-        @keyframes slideIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; } }
+        /* CODE BLOCKS */
         .code-container { position: relative; margin: 15px 0; border-radius: 12px; overflow: hidden; background: #1a1b26; }
-        .copy-btn { position: absolute; top: 8px; right: 8px; background: rgba(255,255,255,0.1); color: #a9b1d6; padding: 4px 8px; border-radius: 6px; font-size: 11px; cursor: pointer; }
+        .copy-btn { position: absolute; top: 8px; right: 8px; background: rgba(255,255,255,0.1); color: #a9b1d6; padding: 4px 8px; border-radius: 6px; font-size: 11px; cursor: pointer; border: 1px solid rgba(255,255,255,0.2); }
+
+        @keyframes slideIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; } }
     </style>
 </head>
 
@@ -172,7 +167,6 @@
         let busy = false;
         let allChats = JSON.parse(localStorage.getItem('neurachat_history')) || [];
 
-        /* -- NAVIGATION -- */
         function toggleSidebar() { $('sidebar').classList.toggle('collapsed'); }
         function autoResize() {
             const textarea = $('msgInput');
@@ -181,7 +175,6 @@
         }
         function handleKey(e) { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); } }
 
-        /* -- STORAGE & HISTORY -- */
         function saveToLocalStorage() { localStorage.setItem('neurachat_history', JSON.stringify(allChats)); }
         function updateSidebar() {
             const container = $('chatHistory'); container.innerHTML = '';
@@ -199,7 +192,6 @@
             history.forEach(msg => addMsg(msg.role === 'user' ? 'user' : 'ai', msg.content, false));
         }
 
-        /* -- MESSAGE ACTIONS -- */
         function copyText(btn) {
             const bubble = btn.closest('.msg-row').querySelector('.bubble');
             navigator.clipboard.writeText(bubble.innerText);
@@ -209,22 +201,13 @@
             const row = btn.closest('.msg-row');
             const p = row.querySelector('.bubble p');
             if(!p) return;
-            
             $('msgInput').value = p.innerText;
             $('msgInput').focus();
             autoResize();
-
-            const nextRow = row.nextElementSibling;
             const index = Array.from($('chatInner').children).indexOf(row);
             if (index !== -1) history.splice(index, 2); 
-
             row.remove();
-            if (nextRow && nextRow.classList.contains('ai')) nextRow.remove();
-        }
-
-        /* -- CHAT CORE -- */
-        function showWelcome() {
-            $('chatInner').innerHTML = `<div class="welcome"><img src="logo.png" style="width:120px; margin-bottom:15px;"><h2>Welcome to NeuraChat</h2><p>Ask me anything.</p></div>`;
+            if (row.nextElementSibling && row.nextElementSibling.classList.contains('ai')) row.nextElementSibling.remove();
         }
 
         function addMsg(role, text, scroll = true) {
@@ -246,6 +229,24 @@
                 </div>`;
 
             $('chatInner').appendChild(row);
+
+            if (role === 'ai') {
+                row.querySelectorAll('pre').forEach((pre) => {
+                    const container = document.createElement('div');
+                    container.className = 'code-container';
+                    pre.parentNode.insertBefore(container, pre);
+                    const btn = document.createElement('button');
+                    btn.className = 'copy-btn'; btn.innerText = 'Copy';
+                    btn.onclick = () => {
+                        navigator.clipboard.writeText(pre.innerText);
+                        btn.innerText = 'Copied!';
+                        setTimeout(() => btn.innerText = 'Copy', 2000);
+                    };
+                    container.appendChild(btn); container.appendChild(pre);
+                    const codeBlock = pre.querySelector('code');
+                    if (codeBlock) hljs.highlightElement(codeBlock);
+                });
+            }
             if (scroll) $('chatScroll').scrollTop = $('chatScroll').scrollHeight;
         }
 
@@ -255,9 +256,7 @@
             const text = input.value.trim();
             if (!text) return;
 
-            input.value = '';
-            input.style.height = 'auto';
-            busy = true;
+            input.value = ''; input.style.height = 'auto'; busy = true;
             addMsg('user', text);
 
             const typingDiv = document.createElement('div');
@@ -269,7 +268,10 @@
                 const res = await fetch('https://neurachat-xxy2.onrender.com/chat', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ message: text, history: history })
+                    body: JSON.stringify({ 
+                        message: text + " (CRITICAL: Always use standard markdown code blocks with language for code responses)", 
+                        history: history 
+                    })
                 });
                 const data = await res.json();
                 const reply = data.choices?.[0]?.message?.content || 'Error.';
@@ -280,6 +282,18 @@
                 typingDiv.remove();
                 addMsg('ai', 'Connection error.'); 
             } finally { busy = false; }
+        }
+
+        function createNewChat() {
+            if (history.length > 0) {
+                allChats.unshift({ title: history[0].content.substring(0, 20), data: [...history] });
+                saveToLocalStorage(); updateSidebar();
+            }
+            history = []; $('chatInner').innerHTML = ''; showWelcome();
+        }
+
+        function showWelcome() {
+            $('chatInner').innerHTML = `<div class="welcome"><img src="logo.png" style="width:120px; margin-bottom:15px;"><h2>Welcome to NeuraChat</h2><p>Ask me anything.</p></div>`;
         }
 
         updateSidebar();
