@@ -1,368 +1,289 @@
+<!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>NeuraChat — BY DYNVALR</title>
-<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NeuraChat — BY DYNVALR</title>
+    
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/tokyo-night-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
 
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/tokyo-night-dark.min.css">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <style>
+        /* 1. GLOBAL & THEME VARIABLES */
+        @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600&family=Inter:wght@300;400;500&display=swap');
+        
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        ::selection { background: #4B0082; color: white; }
 
-<style>
-@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600&family=Inter:wght@300;400;500&display=swap');
+        :root {
+            --bg: #f7f7f8;
+            --surface: #fdbcff;
+            --sidebar: #f3a6ff;
+            --card: #c072ff;
+            --border: rgba(255,255,255,0.15);
+            --text: #0d0d10;
+            --muted: #2e004d;
+            --accent: #b700ff;
+            --user-bg: #ffbbf4;
+            --ai-bg: #ffffff;
+        }
 
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-::selection { background: #4B0082; color: white; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            height: 100dvh;
+            display: flex;
+            overflow: hidden;
+        }
 
-:root {
-  --bg: #f7f7f8;
-  --surface: #fdbcff;
-  --sidebar: #f3a6ff;
-  --card: #c072ff;
-  --border: rgba(255,255,255,0.15);
-  --text: #0d0d10;
-  --muted: #2e004d;
-  --accent: #b700ff;
-  --user-bg: #ffbbf4;
-  --ai-bg: #ffffff;
-}
+        /* 2. SIDEBAR SECTION */
+        .sidebar {
+            width: 260px; background: var(--sidebar); border-right: 1px solid var(--border);
+            display: flex; flex-direction: column; padding: 15px; flex-shrink: 0;
+            transition: margin-left 0.3s ease;
+        }
+        .sidebar.collapsed { margin-left: -260px; }
 
-body {
-  font-family: 'Inter', sans-serif;
-  background: var(--bg);
-  color: var(--text);
-  height: 100dvh;
-  display: flex;
-  overflow: hidden;
-}
+        .new-chat-btn {
+            width: 100%; padding: 12px; background: var(--card); border: 1px solid var(--border);
+            border-radius: 8px; color: var(--text); font-family: 'Syne', sans-serif;
+            font-weight: 600; cursor: pointer; display: flex; align-items: center;
+            justify-content: center; gap: 10px; margin-bottom: 20px; transition: all 0.2s;
+        }
+        .new-chat-btn:hover { background: var(--accent); color: white; }
 
-/* ── SIDEBAR ── */
-.sidebar {
-  width: 260px; background: var(--sidebar); border-right: 1px solid var(--border);
-  display: flex; flex-direction: column; padding: 15px; flex-shrink: 0;
-  transition: margin-left 0.3s ease;
-}
-.sidebar.collapsed { margin-left: -260px; }
+        .chat-list-title { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); margin-bottom: 10px; font-weight: 700; }
+        .chat-history { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 5px; }
 
-.new-chat-btn {
-  width: 100%; padding: 12px; background: var(--card); border: 1px solid var(--border);
-  border-radius: 8px; color: var(--text); font-family: 'Syne', sans-serif;
-  font-weight: 600; cursor: pointer; display: flex; align-items: center;
-  justify-content: center; gap: 10px; margin-bottom: 20px; transition: all 0.2s;
-}
-.new-chat-btn:hover { background: var(--accent); color: white; }
+        .history-item {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 10px; border-radius: 6px; font-size: 13px; cursor: pointer;
+            color: var(--text); transition: background 0.2s;
+        }
+        .history-item:hover { background: rgba(255,255,255,0.3); }
 
-.chat-list-title { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); margin-bottom: 10px; font-weight: 700; }
-.chat-history { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 5px; }
+        .delete-btn { opacity: 0; background: none; border: none; color: #8b0000; font-weight: bold; font-size: 14px; cursor: pointer; padding: 0 5px; }
+        .history-item:hover .delete-btn { opacity: 1; }
 
-.history-item {
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 10px; border-radius: 6px; font-size: 13px; cursor: pointer;
-  color: var(--text); transition: background 0.2s;
-}
-.history-item:hover { background: rgba(255,255,255,0.3); }
+        /* 3. MAIN CHAT LAYOUT */
+        .main-content { flex: 1; display: flex; flex-direction: column; height: 100%; min-width: 0; }
+        .header { display: flex; align-items: center; gap: 12px; padding: 14px 22px; background: var(--surface); border-bottom: 1px solid var(--border); }
+        .logo-mark img { width: 32px; height: 32px; object-fit: contain; }
+        .brand { font-family: 'Syne', sans-serif; font-size: 18px; font-weight: 600; }
+        .brand span { color: var(--accent); }
 
-.delete-btn { opacity: 0; background: none; border: none; color: #8b0000; font-weight: bold; font-size: 14px; cursor: pointer; padding: 0 5px; }
-.history-item:hover .delete-btn { opacity: 1; }
+        .chat-scroll { flex: 1; overflow-y: auto; padding: 28px 20px; }
+        .chat-inner { max-width: 740px; margin: 0 auto; display: flex; flex-direction: column; gap: 22px; }
 
-/* ── MAIN CONTENT ── */
-.main-content { flex: 1; display: flex; flex-direction: column; height: 100%; min-width: 0; }
-.header { display: flex; align-items: center; gap: 12px; padding: 14px 22px; background: var(--surface); border-bottom: 1px solid var(--border); }
-.menu-btn { background: none; border: none; cursor: pointer; display: flex; align-items: center; padding: 5px; border-radius: 6px; }
-.menu-btn svg { fill: var(--muted); }
-.logo-mark img { width: 32px; height: 32px; object-fit: contain; }
-.brand { font-family: 'Syne', sans-serif; font-size: 18px; font-weight: 600; }
-.brand span { color: var(--accent); }
-.brand small { font-size: 10px; opacity: 0.6; margin-left: 5px; font-weight: 400; }
+        /* 4. MESSAGES & BUBBLES */
+        .msg-row { 
+            display: flex; gap: 13px; animation: slideIn 0.22s ease; position: relative;
+            width: fit-content; max-width: 85%;
+        }
+        .msg-row.user { flex-direction: row-reverse; margin-left: auto; }
+        .msg-row.ai { margin-right: auto; }
 
-.chat-scroll { flex: 1; overflow-y: auto; padding: 28px 20px; }
-.chat-inner { max-width: 740px; margin: 0 auto; display: flex; flex-direction: column; gap: 22px; }
+        .av { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .av.ai { background: white; border: 1px solid var(--border); }
+        .av.ai img { width: 70%; height: 70%; }
+        .av.user { background: var(--card); font-size: 18px; }
 
-/* ── MESSAGES ── */
-.msg-row { 
-  display: flex; 
-  gap: 13px; 
-  animation: slideIn 0.22s ease; 
-  position: relative;
-  width: fit-content; /* Row only as wide as the bubble */
-  max-width: 85%;
-}
+        .bubble { padding: 12px 16px; border-radius: 16px; font-size: 14.5px; line-height: 1.6; word-wrap: break-word; }
+        .msg-row.user .bubble { background: var(--user-bg); border-radius: 16px 16px 4px 16px; }
+        .msg-row.ai .bubble { background: var(--ai-bg); border-radius: 16px 16px 16px 4px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
 
-.msg-row.user { 
-  flex-direction: row-reverse; 
-  margin-left: auto; /* Pushes user messages to the right */
-}
+        /* 5. SIDE ACTION BUTTONS (Copy/Edit) */
+        .msg-actions {
+            position: absolute; top: 50%; transform: translateY(-50%);
+            display: flex; gap: 4px; opacity: 0; transition: opacity 0.2s; white-space: nowrap;
+        }
+        .msg-row.user .msg-actions { left: -65px; right: auto; }
+        .msg-row.ai .msg-actions { right: -65px; left: auto; }
+        .msg-row:hover .msg-actions { opacity: 1; }
 
-.msg-row.ai {
-  margin-right: auto; /* Keeps AI messages on the left */
-}
+        .action-btn { background: none; border: none; cursor: pointer; padding: 6px; fill: var(--accent); border-radius: 6px; }
+        .action-btn:hover { background: rgba(183, 0, 255, 0.1); }
 
-.av { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; overflow: hidden; }
-.av.ai { background: white; border: 1px solid var(--border); }
-.av.ai img { width: 70%; height: 70%; object-fit: contain; }
-.av.user { background: var(--card); font-size: 18px; }
+        /* 6. INPUT AREA */
+        .input-area { padding: 14px 20px 18px; background: var(--surface); }
+        .input-box {
+            max-width: 740px; margin: 0 auto; display: flex; align-items: flex-end; gap: 10px;
+            background: var(--card); border-radius: 14px; padding: 10px 14px;
+        }
+        .input-box textarea {
+            flex: 1; background: none; border: none; color: var(--muted);
+            font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 500;
+            resize: none; outline: none; max-height: 200px;
+        }
 
-.bubble { padding: 12px 16px; border-radius: 16px; font-size: 14.5px; line-height: 1.6; word-wrap: break-word; }
-.msg-row.user .bubble { background: var(--user-bg); border-radius: 16px 16px 4px 16px; }
-.msg-row.ai .bubble { background: var(--ai-bg); border-radius: 16px 16px 16px 4px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); color: #1a1a1a; }
+        /* --- THE DARK PURPLE PLACEHOLDER YOU REQUESTED --- */
+        .input-box textarea::placeholder { 
+            color: #2e004d; 
+            opacity: 0.6; 
+        }
 
-/* ── SIDE ACTION BUTTONS ── */
-.msg-actions {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  display: flex;
-  gap: 4px;
-  opacity: 0;
-  transition: opacity 0.2s;
-  white-space: nowrap;
-}
+        .send-btn { width: 38px; height: 38px; background: var(--accent); border: none; border-radius: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
 
-/* User actions (Edit/Copy) on the LEFT of bubble */
-.msg-row.user .msg-actions {
-  left: -65px; /* Increased from -55px to move it further away */
-  right: auto;
-}
-/* AI actions (Copy) on the RIGHT of bubble */
-.msg-row.ai .msg-actions {
-  right: -30px; /* Increased from -55px to move it further away */
-  left: auto;
-}
-
-.msg-row:hover .msg-actions { opacity: 1; }
-
-.action-btn {
-  background: none; border: none; cursor: pointer; padding: 6px;
-  border-radius: 6px; display: flex; align-items: center;
-  fill: #b700ff;
-  transition: all 0.2s;
-}
-.action-btn:hover { background: rgba(183, 0, 255, 0.1); }
-
-/* ── WELCOME & INPUT ── */
-.welcome { text-align: center; padding: 60px 20px; display: flex; flex-direction: column; align-items: center; }
-.welcome-logo { width: 120px; height: auto; margin-bottom: 15px; }
-
-.input-area { padding: 14px 20px 18px; background: var(--surface); }
-.input-box {
-  max-width: 740px; margin: 0 auto; display: flex; align-items: flex-end; gap: 10px;
-  background: var(--card); border-radius: 14px; padding: 10px 14px;
-}
-.input-box textarea {
-  flex: 1; background: none; border: none; color: #2e004d;
-  font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 500;
-  resize: none; outline: none; max-height: 200px; min-height: 20px;
-}
-.send-btn { width: 38px; height: 38px; background: var(--accent); border: none; border-radius: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
-
-/* ── CODE BLOCK ── */
-.code-container { position: relative; margin: 15px 0; border-radius: 12px; overflow: hidden; background: #1a1b26; }
-.copy-btn {
-  position: absolute; top: 8px; right: 8px; background: rgba(255,255,255,0.1);
-  color: #a9b1d6; border: 1px solid rgba(255,255,255,0.2); border-radius: 6px;
-  padding: 4px 8px; font-size: 11px; cursor: pointer; z-index: 10;
-}
-
-@keyframes slideIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; } }
-</style>
+        /* 7. ANIMATIONS & MISC */
+        .welcome { text-align: center; padding: 60px 20px; }
+        @keyframes slideIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; } }
+        .code-container { position: relative; margin: 15px 0; border-radius: 12px; overflow: hidden; background: #1a1b26; }
+        .copy-btn { position: absolute; top: 8px; right: 8px; background: rgba(255,255,255,0.1); color: #a9b1d6; padding: 4px 8px; border-radius: 6px; font-size: 11px; cursor: pointer; }
+    </style>
 </head>
+
 <body>
 
-<div class="sidebar" id="sidebar">
-  <button class="new-chat-btn" onclick="createNewChat()"><strong>+</strong> New Chat</button>
-  <div class="chat-list-title">Recent History</div>
-  <div class="chat-history" id="chatHistory"></div>
-</div>
-
-<div class="main-content">
-  <div class="header">
-    <button class="menu-btn" onclick="toggleSidebar()">
-      <svg viewBox="0 0 24 24" width="24" height="24"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"></path></svg>
-    </button>
-    <div class="logo-mark"><img src="logo.png" alt="N"></div>
-    <span class="brand">Neura<span>Chat</span> <small>by DYNVALR</small></span>
-  </div>
-
-  <div class="chat-scroll" id="chatScroll">
-    <div class="chat-inner" id="chatInner"></div>
-  </div>
-
-  <div class="input-area">
-    <div class="input-box">
-      <textarea id="msgInput" placeholder="Type a message..." rows="1" onkeydown="handleKey(event)" oninput="autoResize()"></textarea>
-      <button class="send-btn" onclick="send()">
-        <svg viewBox="0 0 24 24" width="18" height="18" fill="white"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"></path></svg>
-      </button>
+    <div class="sidebar" id="sidebar">
+        <button class="new-chat-btn" onclick="createNewChat()"><strong>+</strong> New Chat</button>
+        <div class="chat-list-title">Recent History</div>
+        <div class="chat-history" id="chatHistory"></div>
     </div>
-    <div style="font-size: 11px; text-align: center; margin-top: 8px; color: var(--muted); font-weight: bold;">© 2026 DYNVALR | All Rights Reserved</div>
-  </div>
-</div>
 
-<script>
-const $ = id => document.getElementById(id);
-let history = [];
-let busy = false;
-let allChats = JSON.parse(localStorage.getItem('neurachat_history')) || [];
+    <div class="main-content">
+        <div class="header">
+            <button style="background:none; border:none; cursor:pointer;" onclick="toggleSidebar()">
+                <svg viewBox="0 0 24 24" width="24" height="24" fill="#2e004d"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"></path></svg>
+            </button>
+            <div class="logo-mark"><img src="logo.png" alt="N"></div>
+            <span class="brand">Neura<span>Chat</span> <small style="font-size:10px; opacity:0.6;">by DYNVALR</small></span>
+        </div>
 
-function toggleSidebar() { $('sidebar').classList.toggle('collapsed'); }
-function autoResize() {
-  const textarea = $('msgInput');
-  textarea.style.height = 'auto';
-  textarea.style.height = textarea.scrollHeight + 'px';
-}
-function handleKey(e) { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); } }
+        <div class="chat-scroll" id="chatScroll">
+            <div class="chat-inner" id="chatInner"></div>
+        </div>
 
-function saveToLocalStorage() { localStorage.setItem('neurachat_history', JSON.stringify(allChats)); }
-
-function showWelcome() {
-  $('chatInner').innerHTML = `
-    <div class="welcome">
-      <img src="logo.png" class="welcome-logo" alt="NeuraChat">
-      <h2>Welcome to <em>NeuraChat</em></h2>
-      <p>Your session is ready. Ask me anything.</p>
-    </div>`;
-}
-
-function createNewChat() {
-  if (history.length > 0) {
-    const title = history[0].content.substring(0, 30) + "...";
-    allChats.unshift({ title: title, data: [...history] });
-    saveToLocalStorage();
-    updateSidebar();
-  }
-  history = []; 
-  showWelcome();
-}
-
-function updateSidebar() {
-  const container = $('chatHistory');
-  container.innerHTML = '';
-  allChats.forEach((chat, index) => {
-    const item = document.createElement('div');
-    item.className = 'history-item';
-    item.innerHTML = `<span style="flex:1" onclick="loadChat(${index})">${chat.title}</span><button class="delete-btn" onclick="deleteChat(${index})">×</button>`;
-    container.appendChild(item);
-  });
-}
-
-function deleteChat(index) {
-  allChats.splice(index, 1);
-  saveToLocalStorage();
-  updateSidebar();
-}
-
-function loadChat(index) {
-  history = [...allChats[index].data];
-  $('chatInner').innerHTML = '';
-  history.forEach(msg => addMsg(msg.role === 'user' ? 'user' : 'ai', msg.content, false));
-}
-
-function copyCode(btn) {
-  const code = btn.parentElement.querySelector('code').innerText;
-  navigator.clipboard.writeText(code).then(() => {
-    btn.innerText = 'Copied!';
-    setTimeout(() => { btn.innerText = 'Copy'; }, 2000);
-  });
-}
-
-function copyText(btn) {
-  const bubble = btn.closest('.msg-row').querySelector('.bubble');
-  navigator.clipboard.writeText(bubble.innerText);
-}
-
-function editMsg(btn) {
-  const row = btn.closest('.msg-row');
-  const p = row.querySelector('.bubble p');
-  if(!p) return;
-  
-  $('msgInput').value = p.innerText;
-  $('msgInput').focus();
-  autoResize();
-
-  const nextRow = row.nextElementSibling;
-  const index = Array.from($('chatInner').children).indexOf(row);
-  if (index !== -1) history.splice(index, 2); 
-
-  row.remove();
-  if (nextRow && nextRow.classList.contains('ai')) nextRow.remove();
-}
-
-function addMsg(role, text, scroll = true) {
-  const w = document.querySelector('.welcome'); if (w) w.remove();
-  const row = document.createElement('div');
-  row.className = 'msg-row ' + role;
-  
-  const avatarHtml = role === 'user' ? `<div class="av user">😊</div>` : `<div class="av ai"><img src="logo.png"></div>`;
-  const content = role === 'ai' ? marked.parse(text) : `<p>${text}</p>`;
-
-  const actionsHtml = `
-    <div class="msg-actions">
-      <button class="action-btn" onclick="copyText(this)" title="Copy">
-        <svg viewBox="0 0 24 24" width="16" height="16"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>
-      </button>
-      ${role === 'user' ? `
-      <button class="action-btn" onclick="editMsg(this)" title="Edit">
-        <svg viewBox="0 0 24 24" width="16" height="16"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
-      </button>` : ''}
+        <div class="input-area">
+            <div class="input-box">
+                <textarea id="msgInput" placeholder="Type a message..." rows="1" onkeydown="handleKey(event)" oninput="autoResize()"></textarea>
+                <button class="send-btn" onclick="send()">
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="white"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"></path></svg>
+                </button>
+            </div>
+            <div style="font-size: 11px; text-align: center; margin-top: 8px; color: var(--muted); font-weight: bold;">© 2026 DYNVALR | All Rights Reserved</div>
+        </div>
     </div>
-  `;
 
-  row.innerHTML = `${avatarHtml}<div class="bubble">${content}</div>${actionsHtml}`;
-  $('chatInner').appendChild(row);
-  
-  if (role === 'ai') {
-    row.querySelectorAll('pre').forEach((pre) => {
-      const container = document.createElement('div');
-      container.className = 'code-container';
-      pre.parentNode.insertBefore(container, pre);
-      const btn = document.createElement('button');
-      btn.className = 'copy-btn';
-      btn.innerText = 'Copy';
-      btn.onclick = () => copyCode(btn);
-      container.appendChild(btn);
-      container.appendChild(pre);
-      const codeBlock = pre.querySelector('code');
-      if (codeBlock) hljs.highlightElement(codeBlock);
-    });
-  }
-  if (scroll) $('chatScroll').scrollTop = $('chatScroll').scrollHeight;
-}
+    <script>
+        const $ = id => document.getElementById(id);
+        let history = [];
+        let busy = false;
+        let allChats = JSON.parse(localStorage.getItem('neurachat_history')) || [];
 
-async function send() {
-  if (busy) return;
-  const input = $('msgInput');
-  const text = input.value.trim();
-  if (!text) return;
-  input.value = '';
-  input.style.height = 'auto';
-  busy = true;
-  addMsg('user', text);
+        /* -- NAVIGATION -- */
+        function toggleSidebar() { $('sidebar').classList.toggle('collapsed'); }
+        function autoResize() {
+            const textarea = $('msgInput');
+            textarea.style.height = 'auto';
+            textarea.style.height = textarea.scrollHeight + 'px';
+        }
+        function handleKey(e) { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); } }
 
-  const typingDiv = document.createElement('div');
-  typingDiv.id = 'ai-typing';
-  typingDiv.className = 'msg-row ai';
-  typingDiv.innerHTML = `<div class="av ai"><img src="logo.png"></div><div class="bubble"><em>Typing...</em></div>`;
-  $('chatInner').appendChild(typingDiv);
+        /* -- STORAGE & HISTORY -- */
+        function saveToLocalStorage() { localStorage.setItem('neurachat_history', JSON.stringify(allChats)); }
+        function updateSidebar() {
+            const container = $('chatHistory'); container.innerHTML = '';
+            allChats.forEach((chat, index) => {
+                const item = document.createElement('div');
+                item.className = 'history-item';
+                item.innerHTML = `<span style="flex:1" onclick="loadChat(${index})">${chat.title}</span><button class="delete-btn" onclick="deleteChat(${index})">×</button>`;
+                container.appendChild(item);
+            });
+        }
+        function deleteChat(index) { allChats.splice(index, 1); saveToLocalStorage(); updateSidebar(); }
+        function loadChat(index) {
+            history = [...allChats[index].data];
+            $('chatInner').innerHTML = '';
+            history.forEach(msg => addMsg(msg.role === 'user' ? 'user' : 'ai', msg.content, false));
+        }
 
-  try {
-    const res = await fetch('https://neurachat-xxy2.onrender.com/chat', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ message: text, history: history })
-    });
-    const data = await res.json();
-    const reply = data.choices?.[0]?.message?.content || 'Error.';
-    if ($('ai-typing')) $('ai-typing').remove();
-    addMsg('ai', reply);
-    history.push({ role: 'user', content: text }, { role: 'assistant', content: reply });
-  } catch (err) { 
-    if ($('ai-typing')) $('ai-typing').remove();
-    addMsg('ai', 'Connection error.'); 
-  } finally { busy = false; }
-}
+        /* -- MESSAGE ACTIONS -- */
+        function copyText(btn) {
+            const bubble = btn.closest('.msg-row').querySelector('.bubble');
+            navigator.clipboard.writeText(bubble.innerText);
+        }
 
-updateSidebar();
-if (history.length === 0) showWelcome();
-</script>
+        function editMsg(btn) {
+            const row = btn.closest('.msg-row');
+            const p = row.querySelector('.bubble p');
+            if(!p) return;
+            
+            $('msgInput').value = p.innerText;
+            $('msgInput').focus();
+            autoResize();
+
+            const nextRow = row.nextElementSibling;
+            const index = Array.from($('chatInner').children).indexOf(row);
+            if (index !== -1) history.splice(index, 2); 
+
+            row.remove();
+            if (nextRow && nextRow.classList.contains('ai')) nextRow.remove();
+        }
+
+        /* -- CHAT CORE -- */
+        function showWelcome() {
+            $('chatInner').innerHTML = `<div class="welcome"><img src="logo.png" style="width:120px; margin-bottom:15px;"><h2>Welcome to NeuraChat</h2><p>Ask me anything.</p></div>`;
+        }
+
+        function addMsg(role, text, scroll = true) {
+            const w = document.querySelector('.welcome'); if (w) w.remove();
+            const row = document.createElement('div');
+            row.className = 'msg-row ' + role;
+            
+            const avatarHtml = role === 'user' ? `<div class="av user">😊</div>` : `<div class="av ai"><img src="logo.png"></div>`;
+            const content = role === 'ai' ? marked.parse(text) : `<p>${text}</p>`;
+
+            row.innerHTML = `
+                ${avatarHtml}
+                <div class="bubble">${content}</div>
+                <div class="msg-actions">
+                    <button class="action-btn" onclick="copyText(this)">
+                        <svg viewBox="0 0 24 24" width="16" height="16"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>
+                    </button>
+                    ${role === 'user' ? `<button class="action-btn" onclick="editMsg(this)"><svg viewBox="0 0 24 24" width="16" height="16"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg></button>` : ''}
+                </div>`;
+
+            $('chatInner').appendChild(row);
+            if (scroll) $('chatScroll').scrollTop = $('chatScroll').scrollHeight;
+        }
+
+        async function send() {
+            if (busy) return;
+            const input = $('msgInput');
+            const text = input.value.trim();
+            if (!text) return;
+
+            input.value = '';
+            input.style.height = 'auto';
+            busy = true;
+            addMsg('user', text);
+
+            const typingDiv = document.createElement('div');
+            typingDiv.className = 'msg-row ai';
+            typingDiv.innerHTML = `<div class="av ai"><img src="logo.png"></div><div class="bubble"><em>Thinking...</em></div>`;
+            $('chatInner').appendChild(typingDiv);
+
+            try {
+                const res = await fetch('https://neurachat-xxy2.onrender.com/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message: text, history: history })
+                });
+                const data = await res.json();
+                const reply = data.choices?.[0]?.message?.content || 'Error.';
+                typingDiv.remove();
+                addMsg('ai', reply);
+                history.push({ role: 'user', content: text }, { role: 'assistant', content: reply });
+            } catch (err) { 
+                typingDiv.remove();
+                addMsg('ai', 'Connection error.'); 
+            } finally { busy = false; }
+        }
+
+        updateSidebar();
+        if (history.length === 0) showWelcome();
+    </script>
 </body>
 </html>
