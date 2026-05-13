@@ -84,12 +84,14 @@
         .delete-btn { opacity: 0; background: none; border: none; color: #ff4d4d; font-weight: bold; font-size: 14px; cursor: pointer; padding: 0 5px; }
         .history-item:hover .delete-btn { opacity: 1; }
 
-        .settings-btn {
+        .sidebar-footer { margin-top: auto; display: flex; flex-direction: column; gap: 8px; }
+
+        .footer-btn {
             width: 100%; padding: 12px; background: none; border: 1px solid var(--border);
             border-radius: 8px; color: var(--text); font-size: 14px; cursor: pointer;
-            display: flex; align-items: center; gap: 10px; margin-top: auto; transition: background 0.2s;
+            display: flex; align-items: center; gap: 10px; transition: background 0.2s;
         }
-        .settings-btn:hover { background: rgba(255,255,255,0.1); }
+        .footer-btn:hover { background: rgba(255,255,255,0.1); }
 
         /* MODAL ANIMATION */
         .modal-overlay {
@@ -103,13 +105,16 @@
             background: var(--modal-bg); padding: 25px; border-radius: 16px; width: 340px;
             box-shadow: 0 20px 40px rgba(0,0,0,0.4); border: 1px solid var(--border);
             transform: scale(0.8); transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            max-width: 90%;
         }
         .modal-overlay.active .modal { transform: scale(1); }
 
         .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; font-family: 'Syne', sans-serif; }
         .close-modal { background: none; border: none; font-size: 24px; cursor: pointer; color: var(--text); }
         
+        .modal-body { font-size: 14px; line-height: 1.6; color: var(--text); }
         .setting-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-top: 1px solid var(--border); }
+        
         .theme-toggle-btn {
             padding: 8px 16px; background: var(--accent); color: white; border: none;
             border-radius: 8px; cursor: pointer; font-size: 12px; font-weight: 600; transition: transform 0.2s;
@@ -153,17 +158,30 @@
 </head>
 
 <body data-theme="light">
-    <div class="modal-overlay" id="settingsModal" onclick="if(event.target==this) closeSettings()">
+    <div class="modal-overlay" id="settingsModal" onclick="if(event.target==this) closeModal('settingsModal')">
         <div class="modal">
             <div class="modal-header">
                 <h3>Settings</h3>
-                <button class="close-modal" onclick="closeSettings()">×</button>
+                <button class="close-modal" onclick="closeModal('settingsModal')">×</button>
             </div>
             <div class="setting-row">
                 <span>Theme Mode</span>
                 <button class="theme-toggle-btn" id="themeBtn" onclick="toggleTheme()">🌙 Dark Mode</button>
             </div>
-            <p style="font-size: 10px; color: var(--muted); margin-top: 20px; text-align: center; opacity: 0.6;">NeuraChat v2.1 by DYNVALR</p>
+            <p style="font-size: 10px; color: var(--muted); margin-top: 20px; text-align: center; opacity: 0.6;">NeuraChat v2.2 by DYNVALR</p>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="aboutModal" onclick="if(event.target==this) closeModal('aboutModal')">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>About AI</h3>
+                <button class="close-modal" onclick="closeModal('aboutModal')">×</button>
+            </div>
+            <div class="modal-body">
+                <p><strong>DYNVALR Intelligence</strong></p>
+                <p style="margin-top: 10px;">I'm currently waiting for my creator to fill this section with amazing details! Stay tuned.</p>
+            </div>
         </div>
     </div>
 
@@ -172,10 +190,16 @@
         <div class="chat-list-title">Recent History</div>
         <div class="chat-history" id="chatHistory"></div>
         
-        <button class="settings-btn" onclick="openSettings()">
-            <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"></path></svg>
-            Settings
-        </button>
+        <div class="sidebar-footer">
+            <button class="footer-btn" onclick="openModal('aboutModal')">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M11 17h2v-6h-2v6zm1-15C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zM11 9h2V7h-2v2z"/></svg>
+                About AI
+            </button>
+            <button class="footer-btn" onclick="openModal('settingsModal')">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"></path></svg>
+                Settings
+            </button>
+        </div>
     </div>
 
     <div class="main-content">
@@ -208,14 +232,14 @@
         let busy = false;
         let allChats = JSON.parse(localStorage.getItem('neurachat_history')) || [];
 
-        // MODAL LOGIC WITH ANIMATION
-        function openSettings() {
-            const modal = $('settingsModal');
+        // GENERAL MODAL LOGIC
+        function openModal(modalId) {
+            const modal = $(modalId);
             modal.style.display = 'flex';
             setTimeout(() => modal.classList.add('active'), 10);
         }
-        function closeSettings() {
-            const modal = $('settingsModal');
+        function closeModal(modalId) {
+            const modal = $(modalId);
             modal.classList.remove('active');
             setTimeout(() => modal.style.display = 'none', 300);
         }
