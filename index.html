@@ -84,7 +84,6 @@
         .delete-btn { opacity: 0; background: none; border: none; color: #ff4d4d; font-weight: bold; font-size: 14px; cursor: pointer; padding: 0 5px; }
         .history-item:hover .delete-btn { opacity: 1; }
 
-        /* SETTINGS BUTTON */
         .settings-btn {
             width: 100%; padding: 12px; background: none; border: 1px solid var(--border);
             border-radius: 8px; color: var(--text); font-size: 14px; cursor: pointer;
@@ -92,23 +91,30 @@
         }
         .settings-btn:hover { background: rgba(255,255,255,0.1); }
 
-        /* MODAL */
+        /* MODAL ANIMATION */
         .modal-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.5); display: none; align-items: center; justify-content: center; z-index: 1000;
+            background: rgba(0,0,0,0.6); display: none; align-items: center; 
+            justify-content: center; z-index: 1000; opacity: 0; transition: opacity 0.3s ease;
         }
+        .modal-overlay.active { display: flex; opacity: 1; }
+
         .modal {
-            background: var(--modal-bg); padding: 25px; border-radius: 16px; width: 320px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3); border: 1px solid var(--border);
+            background: var(--modal-bg); padding: 25px; border-radius: 16px; width: 340px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4); border: 1px solid var(--border);
+            transform: scale(0.8); transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
+        .modal-overlay.active .modal { transform: scale(1); }
+
         .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; font-family: 'Syne', sans-serif; }
-        .close-modal { background: none; border: none; font-size: 20px; cursor: pointer; color: var(--text); }
+        .close-modal { background: none; border: none; font-size: 24px; cursor: pointer; color: var(--text); }
         
-        .setting-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-top: 1px solid var(--border); }
+        .setting-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-top: 1px solid var(--border); }
         .theme-toggle-btn {
-            padding: 8px 14px; background: var(--accent); color: white; border: none;
-            border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 600;
+            padding: 8px 16px; background: var(--accent); color: white; border: none;
+            border-radius: 8px; cursor: pointer; font-size: 12px; font-weight: 600; transition: transform 0.2s;
         }
+        .theme-toggle-btn:active { transform: scale(0.95); }
 
         /* MAIN CONTENT */
         .main-content { flex: 1; display: flex; flex-direction: column; height: 100%; min-width: 0; }
@@ -147,7 +153,7 @@
 </head>
 
 <body data-theme="light">
-    <div class="modal-overlay" id="settingsModal">
+    <div class="modal-overlay" id="settingsModal" onclick="if(event.target==this) closeSettings()">
         <div class="modal">
             <div class="modal-header">
                 <h3>Settings</h3>
@@ -157,7 +163,7 @@
                 <span>Theme Mode</span>
                 <button class="theme-toggle-btn" id="themeBtn" onclick="toggleTheme()">🌙 Dark Mode</button>
             </div>
-            <p style="font-size: 10px; color: var(--muted); margin-top: 15px; text-align: center;">NeuraChat v2.0 by DYNVALR</p>
+            <p style="font-size: 10px; color: var(--muted); margin-top: 20px; text-align: center; opacity: 0.6;">NeuraChat v2.1 by DYNVALR</p>
         </div>
     </div>
 
@@ -202,9 +208,17 @@
         let busy = false;
         let allChats = JSON.parse(localStorage.getItem('neurachat_history')) || [];
 
-        // MODAL LOGIC
-        function openSettings() { $('settingsModal').style.display = 'flex'; }
-        function closeSettings() { $('settingsModal').style.display = 'none'; }
+        // MODAL LOGIC WITH ANIMATION
+        function openSettings() {
+            const modal = $('settingsModal');
+            modal.style.display = 'flex';
+            setTimeout(() => modal.classList.add('active'), 10);
+        }
+        function closeSettings() {
+            const modal = $('settingsModal');
+            modal.classList.remove('active');
+            setTimeout(() => modal.style.display = 'none', 300);
+        }
         
         // THEME LOGIC
         function toggleTheme() {
