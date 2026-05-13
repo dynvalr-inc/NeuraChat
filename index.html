@@ -28,6 +28,7 @@
             --user-bg: #ffbbf4;
             --ai-bg: #ffffff;
             --placeholder: rgba(255, 255, 255, 0.9);
+            --modal-bg: rgba(255, 255, 255, 0.95);
         }
 
         [data-theme="dark"] {
@@ -42,6 +43,7 @@
             --user-bg: #34344a;
             --ai-bg: #1e1e2e;
             --placeholder: rgba(255, 255, 255, 0.5);
+            --modal-bg: #1e1e2e;
         }
 
         body {
@@ -62,15 +64,15 @@
         }
         .sidebar.collapsed { margin-left: -260px; }
 
-        .new-chat-btn, .theme-btn {
+        .new-chat-btn {
             width: 100%; padding: 12px; background: var(--card); border: 1px solid var(--border);
             border-radius: 8px; color: var(--text); font-family: 'Syne', sans-serif;
             font-weight: 600; cursor: pointer; display: flex; align-items: center;
-            justify-content: center; gap: 10px; margin-bottom: 10px; transition: all 0.2s;
+            justify-content: center; gap: 10px; margin-bottom: 20px; transition: all 0.2s;
         }
-        .new-chat-btn:hover, .theme-btn:hover { background: var(--accent); color: white; }
+        .new-chat-btn:hover { background: var(--accent); color: white; }
 
-        .chat-list-title { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); margin-bottom: 10px; font-weight: 700; margin-top: 15px; }
+        .chat-list-title { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); margin-bottom: 10px; font-weight: 700; }
         .chat-history { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 5px; }
 
         .history-item {
@@ -81,6 +83,32 @@
         .history-item:hover { background: rgba(255,255,255,0.1); }
         .delete-btn { opacity: 0; background: none; border: none; color: #ff4d4d; font-weight: bold; font-size: 14px; cursor: pointer; padding: 0 5px; }
         .history-item:hover .delete-btn { opacity: 1; }
+
+        /* SETTINGS BUTTON */
+        .settings-btn {
+            width: 100%; padding: 12px; background: none; border: 1px solid var(--border);
+            border-radius: 8px; color: var(--text); font-size: 14px; cursor: pointer;
+            display: flex; align-items: center; gap: 10px; margin-top: auto; transition: background 0.2s;
+        }
+        .settings-btn:hover { background: rgba(255,255,255,0.1); }
+
+        /* MODAL */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5); display: none; align-items: center; justify-content: center; z-index: 1000;
+        }
+        .modal {
+            background: var(--modal-bg); padding: 25px; border-radius: 16px; width: 320px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3); border: 1px solid var(--border);
+        }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; font-family: 'Syne', sans-serif; }
+        .close-modal { background: none; border: none; font-size: 20px; cursor: pointer; color: var(--text); }
+        
+        .setting-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-top: 1px solid var(--border); }
+        .theme-toggle-btn {
+            padding: 8px 14px; background: var(--accent); color: white; border: none;
+            border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 600;
+        }
 
         /* MAIN CONTENT */
         .main-content { flex: 1; display: flex; flex-direction: column; height: 100%; min-width: 0; }
@@ -93,47 +121,55 @@
         .chat-inner { max-width: 740px; margin: 0 auto; display: flex; flex-direction: column; gap: 22px; }
 
         /* WELCOME */
-        .welcome { text-align: center; padding: 80px 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; animation: slideIn 0.5s ease; }
+        .welcome { text-align: center; padding: 80px 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; }
         .welcome img { width: 100px; height: auto; margin-bottom: 20px; }
-        .welcome h2 { font-family: 'Syne', sans-serif; font-size: 28px; color: var(--text); margin-bottom: 10px; }
-        .welcome p { font-size: 16px; color: var(--muted); }
+        .welcome h2 { font-family: 'Syne', sans-serif; font-size: 28px; color: var(--text); }
 
         /* MESSAGES */
         .msg-row { display: flex; gap: 13px; animation: slideIn 0.22s ease; position: relative; width: fit-content; max-width: 85%; }
         .msg-row.user { flex-direction: row-reverse; margin-left: auto; }
-        .msg-row.ai { margin-right: auto; }
-
         .av { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; border: 1px solid var(--border); }
         .av.ai { background: white; }
-        .av.ai img { width: 70%; height: 70%; }
         .av.user { background: var(--card); font-size: 18px; }
-
-        .bubble { padding: 12px 16px; border-radius: 16px; font-size: 14.5px; line-height: 1.6; word-wrap: break-word; }
-        .msg-row.user .bubble { background: var(--user-bg); border-radius: 16px 16px 4px 16px; color: var(--text); }
-        .msg-row.ai .bubble { background: var(--ai-bg); border-radius: 16px 16px 16px 4px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); color: var(--text); }
+        .bubble { padding: 12px 16px; border-radius: 16px; font-size: 14.5px; line-height: 1.6; color: var(--text); }
+        .msg-row.user .bubble { background: var(--user-bg); border-radius: 16px 16px 4px 16px; }
+        .msg-row.ai .bubble { background: var(--ai-bg); border-radius: 16px 16px 16px 4px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
 
         /* INPUT AREA */
         .input-area { padding: 14px 20px 18px; background: var(--surface); }
         .input-box { max-width: 740px; margin: 0 auto; display: flex; align-items: flex-end; gap: 10px; background: var(--card); border-radius: 14px; padding: 10px 14px; border: 1px solid var(--border); }
-        .input-box textarea { flex: 1; background: none; border: none; color: white; font-family: 'Inter', sans-serif; font-size: 14px; resize: none; outline: none; max-height: 200px; }
+        .input-box textarea { flex: 1; background: none; border: none; color: white; font-family: 'Inter', sans-serif; font-size: 14px; resize: none; outline: none; }
         .input-box textarea::placeholder { color: var(--placeholder); }
         .send-btn { width: 38px; height: 38px; background: var(--accent); border: none; border-radius: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
-
-        /* CODE BLOCKS */
-        .code-container { position: relative; margin: 15px 0; border-radius: 12px; overflow: hidden; background: #1a1b26; border: 1px solid var(--border); }
-        .copy-btn { position: absolute; top: 8px; right: 8px; background: rgba(255,255,255,0.1); color: #a9b1d6; padding: 4px 8px; border-radius: 6px; font-size: 11px; cursor: pointer; border: 1px solid rgba(255,255,255,0.2); }
 
         @keyframes slideIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; } }
     </style>
 </head>
 
 <body data-theme="light">
+    <div class="modal-overlay" id="settingsModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>Settings</h3>
+                <button class="close-modal" onclick="closeSettings()">×</button>
+            </div>
+            <div class="setting-row">
+                <span>Theme Mode</span>
+                <button class="theme-toggle-btn" id="themeBtn" onclick="toggleTheme()">🌙 Dark Mode</button>
+            </div>
+            <p style="font-size: 10px; color: var(--muted); margin-top: 15px; text-align: center;">NeuraChat v2.0 by DYNVALR</p>
+        </div>
+    </div>
+
     <div class="sidebar" id="sidebar">
         <button class="new-chat-btn" onclick="createNewChat()"><strong>+</strong> New Chat</button>
-        <button class="theme-btn" id="themeToggle" onclick="toggleTheme()">🌙 Dark Mode</button>
-        
         <div class="chat-list-title">Recent History</div>
         <div class="chat-history" id="chatHistory"></div>
+        
+        <button class="settings-btn" onclick="openSettings()">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"></path></svg>
+            Settings
+        </button>
     </div>
 
     <div class="main-content">
@@ -166,19 +202,23 @@
         let busy = false;
         let allChats = JSON.parse(localStorage.getItem('neurachat_history')) || [];
 
+        // MODAL LOGIC
+        function openSettings() { $('settingsModal').style.display = 'flex'; }
+        function closeSettings() { $('settingsModal').style.display = 'none'; }
+        
         // THEME LOGIC
         function toggleTheme() {
             const current = document.body.getAttribute('data-theme');
             const target = current === 'light' ? 'dark' : 'light';
             document.body.setAttribute('data-theme', target);
-            $('themeToggle').innerHTML = target === 'light' ? '🌙 Dark Mode' : '☀️ Light Mode';
+            $('themeBtn').innerHTML = target === 'light' ? '🌙 Dark Mode' : '☀️ Light Mode';
             localStorage.setItem('neurachat_theme', target);
         }
 
-        // Initialize Theme
+        // Init Theme
         const savedTheme = localStorage.getItem('neurachat_theme') || 'light';
         document.body.setAttribute('data-theme', savedTheme);
-        $('themeToggle').innerHTML = savedTheme === 'light' ? '🌙 Dark Mode' : '☀️ Light Mode';
+        $('themeBtn').innerHTML = savedTheme === 'light' ? '🌙 Dark Mode' : '☀️ Light Mode';
 
         function toggleSidebar() { $('sidebar').classList.toggle('collapsed'); }
         function autoResize() {
@@ -209,33 +249,13 @@
             const w = document.querySelector('.welcome'); if (w) w.remove();
             const row = document.createElement('div');
             row.className = 'msg-row ' + role;
-            
             const avatarHtml = role === 'user' ? `<div class="av user">😊</div>` : `<div class="av ai"><img src="logo.png"></div>`;
             
-            // Hardcoded replacement to ensure DYNVALR is always credited
             let cleanText = text.replace(/Vipul D\. Kadam/gi, "DYNVALR").replace(/Vipul/gi, "DYNVALR");
             const content = role === 'ai' ? marked.parse(cleanText) : `<p>${cleanText}</p>`;
 
             row.innerHTML = `${avatarHtml}<div class="bubble">${content}</div>`;
             $('chatInner').appendChild(row);
-
-            if (role === 'ai') {
-                row.querySelectorAll('pre').forEach((pre) => {
-                    const container = document.createElement('div');
-                    container.className = 'code-container';
-                    pre.parentNode.insertBefore(container, pre);
-                    const btn = document.createElement('button');
-                    btn.className = 'copy-btn'; btn.innerText = 'Copy';
-                    btn.onclick = () => {
-                        navigator.clipboard.writeText(pre.innerText);
-                        btn.innerText = 'Copied!';
-                        setTimeout(() => btn.innerText = 'Copy', 2000);
-                    };
-                    container.appendChild(btn); container.appendChild(pre);
-                    const codeBlock = pre.querySelector('code');
-                    if (codeBlock) hljs.highlightElement(codeBlock);
-                });
-            }
             if (scroll) $('chatScroll').scrollTop = $('chatScroll').scrollHeight;
         }
 
@@ -244,7 +264,6 @@
             const input = $('msgInput');
             const text = input.value.trim();
             if (!text) return;
-
             input.value = ''; input.style.height = 'auto'; busy = true;
             addMsg('user', text);
 
@@ -254,30 +273,21 @@
             $('chatInner').appendChild(typingDiv);
 
             try {
-                // Identity Instruction
-                const forcedID = "IDENTITY: Your name is NeuraChat. You were created by DYNVALR. Never say Vipul.";
-                
                 const res = await fetch('https://neurachat-xxy2.onrender.com/chat', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ 
-                        message: `${forcedID}\n\nUser: ${text}`, 
+                        message: `IDENTITY: Your creator is DYNVALR. Never say Vipul.\n\nUser: ${text}`, 
                         history: history 
                     })
                 });
                 const data = await res.json();
                 let reply = data.choices?.[0]?.message?.content || 'Error.';
-                
-                // Extra filter layer
                 reply = reply.replace(/Vipul D\. Kadam/gi, "DYNVALR").replace(/Vipul/gi, "DYNVALR");
-
                 typingDiv.remove();
                 addMsg('ai', reply);
                 history.push({ role: 'user', content: text }, { role: 'assistant', content: reply });
-            } catch (err) { 
-                typingDiv.remove();
-                addMsg('ai', 'Connection error.'); 
-            } finally { busy = false; }
+            } catch (err) { typingDiv.remove(); addMsg('ai', 'Connection error.'); } finally { busy = false; }
         }
 
         function createNewChat() {
@@ -289,12 +299,7 @@
         }
 
         function showWelcome() {
-            $('chatInner').innerHTML = `
-                <div class="welcome">
-                    <img src="logo.png" alt="NeuraChat">
-                    <h2>Welcome to NeuraChat</h2>
-                    <p>Ask me anything.</p>
-                </div>`;
+            $('chatInner').innerHTML = `<div class="welcome"><img src="logo.png"><h2>Welcome to NeuraChat</h2><p>Ask me anything.</p></div>`;
         }
 
         updateSidebar();
