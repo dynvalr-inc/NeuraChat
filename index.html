@@ -113,8 +113,8 @@
         .input-box { max-width: 740px; margin: 0 auto; display: flex; align-items: flex-end; gap: 10px; background: var(--card); border-radius: 14px; padding: 10px 14px; }
         .input-box textarea { flex: 1; background: none; border: none; color: white; font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 500; resize: none; outline: none; max-height: 200px; }
         
-        /* Updated placeholder for better visibility */
-        .input-box textarea::placeholder { color: rgba(255, 255, 255, 0.8); }
+        /* Updated placeholder color for better visibility */
+        .input-box textarea::placeholder { color: rgba(255, 255, 255, 0.85); }
 
         .send-btn { width: 38px; height: 38px; background: var(--accent); border: none; border-radius: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
 
@@ -261,13 +261,14 @@
             $('chatInner').appendChild(typingDiv);
 
             try {
+                // We send the identity command as a system-like instruction at the start of every request
+                const systemPrompt = "Your name is NeuraChat. You are a helpful AI assistant created by DYNVALR. Never mention any other creator. If someone asks who created you, answer 'DYNVALR'.";
+                
                 const res = await fetch('https://neurachat-xxy2.onrender.com/chat', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ 
-                        message: `Identity: You are NeuraChat, a helpful AI assistant created by DYNVALR. 
-                                  User Message: ${text} 
-                                  (CRITICAL: Always use standard markdown code blocks for code)`, 
+                        message: `${systemPrompt}\n\nUser Message: ${text}`, 
                         history: history 
                     })
                 });
