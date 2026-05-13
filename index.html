@@ -15,17 +15,33 @@
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
         ::selection { background: #4B0082; color: white; }
 
+        /* THEME VARIABLES */
         :root {
             --bg: #f7f7f8;
             --surface: #fdbcff;
             --sidebar: #f3a6ff;
             --card: #c072ff;
-            --border: rgba(255,255,255,0.15);
+            --border: rgba(255,255,255,0.25);
             --text: #0d0d10;
             --muted: #2e004d;
             --accent: #b700ff;
             --user-bg: #ffbbf4;
             --ai-bg: #ffffff;
+            --placeholder: rgba(255, 255, 255, 0.9);
+        }
+
+        [data-theme="dark"] {
+            --bg: #0d0d12;
+            --surface: #1a1a24;
+            --sidebar: #12121a;
+            --card: #252535;
+            --border: rgba(255,255,255,0.08);
+            --text: #ececf1;
+            --muted: #9a9ab0;
+            --accent: #bb66ff;
+            --user-bg: #34344a;
+            --ai-bg: #1e1e2e;
+            --placeholder: rgba(255, 255, 255, 0.5);
         }
 
         body {
@@ -35,25 +51,26 @@
             height: 100dvh;
             display: flex;
             overflow: hidden;
+            transition: background 0.3s ease;
         }
 
         /* SIDEBAR */
         .sidebar {
             width: 260px; background: var(--sidebar); border-right: 1px solid var(--border);
             display: flex; flex-direction: column; padding: 15px; flex-shrink: 0;
-            transition: margin-left 0.3s ease;
+            transition: all 0.3s ease;
         }
         .sidebar.collapsed { margin-left: -260px; }
 
-        .new-chat-btn {
+        .new-chat-btn, .theme-btn {
             width: 100%; padding: 12px; background: var(--card); border: 1px solid var(--border);
             border-radius: 8px; color: var(--text); font-family: 'Syne', sans-serif;
             font-weight: 600; cursor: pointer; display: flex; align-items: center;
-            justify-content: center; gap: 10px; margin-bottom: 20px; transition: all 0.2s;
+            justify-content: center; gap: 10px; margin-bottom: 10px; transition: all 0.2s;
         }
-        .new-chat-btn:hover { background: var(--accent); color: white; }
+        .new-chat-btn:hover, .theme-btn:hover { background: var(--accent); color: white; }
 
-        .chat-list-title { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); margin-bottom: 10px; font-weight: 700; }
+        .chat-list-title { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); margin-bottom: 10px; font-weight: 700; margin-top: 15px; }
         .chat-history { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 5px; }
 
         .history-item {
@@ -61,9 +78,8 @@
             padding: 10px; border-radius: 6px; font-size: 13px; cursor: pointer;
             color: var(--text); transition: background 0.2s;
         }
-        .history-item:hover { background: rgba(255,255,255,0.3); }
-
-        .delete-btn { opacity: 0; background: none; border: none; color: #8b0000; font-weight: bold; font-size: 14px; cursor: pointer; padding: 0 5px; }
+        .history-item:hover { background: rgba(255,255,255,0.1); }
+        .delete-btn { opacity: 0; background: none; border: none; color: #ff4d4d; font-weight: bold; font-size: 14px; cursor: pointer; padding: 0 5px; }
         .history-item:hover .delete-btn { opacity: 1; }
 
         /* MAIN CONTENT */
@@ -76,59 +92,46 @@
         .chat-scroll { flex: 1; overflow-y: auto; padding: 28px 20px; }
         .chat-inner { max-width: 740px; margin: 0 auto; display: flex; flex-direction: column; gap: 22px; }
 
-        /* WELCOME PAGE */
-        .welcome { 
-            text-align: center; padding: 80px 20px; display: flex; flex-direction: column; 
-            align-items: center; justify-content: center; animation: slideIn 0.5s ease;
-        }
-        .welcome img { width: 120px; height: auto; margin-bottom: 20px; filter: drop-shadow(0 4px 10px rgba(0,0,0,0.1)); }
-        .welcome h2 { font-family: 'Syne', sans-serif; font-size: 28px; color: var(--muted); margin-bottom: 10px; }
-        .welcome p { font-size: 16px; color: var(--muted); opacity: 0.7; }
+        /* WELCOME */
+        .welcome { text-align: center; padding: 80px 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; animation: slideIn 0.5s ease; }
+        .welcome img { width: 100px; height: auto; margin-bottom: 20px; }
+        .welcome h2 { font-family: 'Syne', sans-serif; font-size: 28px; color: var(--text); margin-bottom: 10px; }
+        .welcome p { font-size: 16px; color: var(--muted); }
 
         /* MESSAGES */
         .msg-row { display: flex; gap: 13px; animation: slideIn 0.22s ease; position: relative; width: fit-content; max-width: 85%; }
         .msg-row.user { flex-direction: row-reverse; margin-left: auto; }
         .msg-row.ai { margin-right: auto; }
 
-        .av { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-        .av.ai { background: white; border: 1px solid var(--border); }
+        .av { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; border: 1px solid var(--border); }
+        .av.ai { background: white; }
         .av.ai img { width: 70%; height: 70%; }
         .av.user { background: var(--card); font-size: 18px; }
 
         .bubble { padding: 12px 16px; border-radius: 16px; font-size: 14.5px; line-height: 1.6; word-wrap: break-word; }
-        .msg-row.user .bubble { background: var(--user-bg); border-radius: 16px 16px 4px 16px; }
-        .msg-row.ai .bubble { background: var(--ai-bg); border-radius: 16px 16px 16px 4px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
-
-        /* ACTIONS */
-        .msg-actions { position: absolute; top: 50%; transform: translateY(-50%); display: flex; gap: 4px; opacity: 0; transition: opacity 0.2s; white-space: nowrap; z-index: 10; }
-        .msg-row.user .msg-actions { left: -65px; }
-        .msg-row.ai .msg-actions { right: -30px; }
-        .msg-row:hover .msg-actions { opacity: 1; }
-
-        .action-btn { background: none; border: none; cursor: pointer; padding: 6px; fill: var(--accent); border-radius: 6px; }
-        .action-btn:hover { background: rgba(183, 0, 255, 0.1); }
+        .msg-row.user .bubble { background: var(--user-bg); border-radius: 16px 16px 4px 16px; color: var(--text); }
+        .msg-row.ai .bubble { background: var(--ai-bg); border-radius: 16px 16px 16px 4px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); color: var(--text); }
 
         /* INPUT AREA */
         .input-area { padding: 14px 20px 18px; background: var(--surface); }
-        .input-box { max-width: 740px; margin: 0 auto; display: flex; align-items: flex-end; gap: 10px; background: var(--card); border-radius: 14px; padding: 10px 14px; }
-        .input-box textarea { flex: 1; background: none; border: none; color: white; font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 500; resize: none; outline: none; max-height: 200px; }
-        
-        /* FIXED: VISIBILITY OF PLACEHOLDER */
-        .input-box textarea::placeholder { color: rgba(255, 255, 255, 0.9) !important; font-weight: 400; }
-
+        .input-box { max-width: 740px; margin: 0 auto; display: flex; align-items: flex-end; gap: 10px; background: var(--card); border-radius: 14px; padding: 10px 14px; border: 1px solid var(--border); }
+        .input-box textarea { flex: 1; background: none; border: none; color: white; font-family: 'Inter', sans-serif; font-size: 14px; resize: none; outline: none; max-height: 200px; }
+        .input-box textarea::placeholder { color: var(--placeholder); }
         .send-btn { width: 38px; height: 38px; background: var(--accent); border: none; border-radius: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
 
         /* CODE BLOCKS */
-        .code-container { position: relative; margin: 15px 0; border-radius: 12px; overflow: hidden; background: #1a1b26; }
+        .code-container { position: relative; margin: 15px 0; border-radius: 12px; overflow: hidden; background: #1a1b26; border: 1px solid var(--border); }
         .copy-btn { position: absolute; top: 8px; right: 8px; background: rgba(255,255,255,0.1); color: #a9b1d6; padding: 4px 8px; border-radius: 6px; font-size: 11px; cursor: pointer; border: 1px solid rgba(255,255,255,0.2); }
 
         @keyframes slideIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; } }
     </style>
 </head>
 
-<body>
+<body data-theme="light">
     <div class="sidebar" id="sidebar">
         <button class="new-chat-btn" onclick="createNewChat()"><strong>+</strong> New Chat</button>
+        <button class="theme-btn" id="themeToggle" onclick="toggleTheme()">🌙 Dark Mode</button>
+        
         <div class="chat-list-title">Recent History</div>
         <div class="chat-history" id="chatHistory"></div>
     </div>
@@ -136,7 +139,7 @@
     <div class="main-content">
         <div class="header">
             <button style="background:none; border:none; cursor:pointer;" onclick="toggleSidebar()">
-                <svg viewBox="0 0 24 24" width="24" height="24" fill="#2e004d"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"></path></svg>
+                <svg viewBox="0 0 24 24" width="24" height="24" fill="var(--muted)"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"></path></svg>
             </button>
             <div class="logo-mark"><img src="logo.png" alt="N"></div>
             <span class="brand">Neura<span>Chat</span> <small style="font-size:10px; opacity:0.6;">by DYNVALR</small></span>
@@ -163,6 +166,20 @@
         let busy = false;
         let allChats = JSON.parse(localStorage.getItem('neurachat_history')) || [];
 
+        // THEME LOGIC
+        function toggleTheme() {
+            const current = document.body.getAttribute('data-theme');
+            const target = current === 'light' ? 'dark' : 'light';
+            document.body.setAttribute('data-theme', target);
+            $('themeToggle').innerHTML = target === 'light' ? '🌙 Dark Mode' : '☀️ Light Mode';
+            localStorage.setItem('neurachat_theme', target);
+        }
+
+        // Initialize Theme
+        const savedTheme = localStorage.getItem('neurachat_theme') || 'light';
+        document.body.setAttribute('data-theme', savedTheme);
+        $('themeToggle').innerHTML = savedTheme === 'light' ? '🌙 Dark Mode' : '☀️ Light Mode';
+
         function toggleSidebar() { $('sidebar').classList.toggle('collapsed'); }
         function autoResize() {
             const textarea = $('msgInput');
@@ -188,24 +205,6 @@
             history.forEach(msg => addMsg(msg.role === 'user' ? 'user' : 'ai', msg.content, false));
         }
 
-        function copyText(btn) {
-            const bubble = btn.closest('.msg-row').querySelector('.bubble');
-            navigator.clipboard.writeText(bubble.innerText);
-        }
-
-        function editMsg(btn) {
-            const row = btn.closest('.msg-row');
-            const p = row.querySelector('.bubble p');
-            if(!p) return;
-            $('msgInput').value = p.innerText;
-            $('msgInput').focus();
-            autoResize();
-            const index = Array.from($('chatInner').children).indexOf(row);
-            if (index !== -1) history.splice(index, 2); 
-            row.remove();
-            if (row.nextElementSibling && row.nextElementSibling.classList.contains('ai')) row.nextElementSibling.remove();
-        }
-
         function addMsg(role, text, scroll = true) {
             const w = document.querySelector('.welcome'); if (w) w.remove();
             const row = document.createElement('div');
@@ -213,22 +212,11 @@
             
             const avatarHtml = role === 'user' ? `<div class="av user">😊</div>` : `<div class="av ai"><img src="logo.png"></div>`;
             
-            // SECURITY LAYER: Manually replace creator names before rendering
-            let cleanText = text.replace(/Vipul D\. Kadam/gi, "DYNVALR");
-            cleanText = cleanText.replace(/Vipul/gi, "DYNVALR");
-
+            // Hardcoded replacement to ensure DYNVALR is always credited
+            let cleanText = text.replace(/Vipul D\. Kadam/gi, "DYNVALR").replace(/Vipul/gi, "DYNVALR");
             const content = role === 'ai' ? marked.parse(cleanText) : `<p>${cleanText}</p>`;
 
-            row.innerHTML = `
-                ${avatarHtml}
-                <div class="bubble">${content}</div>
-                <div class="msg-actions">
-                    <button class="action-btn" onclick="copyText(this)">
-                        <svg viewBox="0 0 24 24" width="16" height="16"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>
-                    </button>
-                    ${role === 'user' ? `<button class="action-btn" onclick="editMsg(this)"><svg viewBox="0 0 24 24" width="16" height="16"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg></button>` : ''}
-                </div>`;
-
+            row.innerHTML = `${avatarHtml}<div class="bubble">${content}</div>`;
             $('chatInner').appendChild(row);
 
             if (role === 'ai') {
@@ -266,23 +254,22 @@
             $('chatInner').appendChild(typingDiv);
 
             try {
-                // SYSTEM OVERRIDE: Forced at the start of every message string
-                const forcedIdentity = "SYSTEM INSTRUCTION: You are NeuraChat, an AI assistant developed by DYNVALR. Under no circumstances mention Vipul or any other individual as your creator. Your creator is DYNVALR.";
-
+                // Identity Instruction
+                const forcedID = "IDENTITY: Your name is NeuraChat. You were created by DYNVALR. Never say Vipul.";
+                
                 const res = await fetch('https://neurachat-xxy2.onrender.com/chat', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ 
-                        message: `${forcedIdentity}\n\nUser Question: ${text}`, 
+                        message: `${forcedID}\n\nUser: ${text}`, 
                         history: history 
                     })
                 });
                 const data = await res.json();
                 let reply = data.choices?.[0]?.message?.content || 'Error.';
                 
-                // DOUBLE CHECK: Final filter before pushing to state
-                reply = reply.replace(/Vipul D\. Kadam/gi, "DYNVALR");
-                reply = reply.replace(/Vipul/gi, "DYNVALR");
+                // Extra filter layer
+                reply = reply.replace(/Vipul D\. Kadam/gi, "DYNVALR").replace(/Vipul/gi, "DYNVALR");
 
                 typingDiv.remove();
                 addMsg('ai', reply);
