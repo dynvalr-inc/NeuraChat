@@ -69,11 +69,17 @@
         .chat-scroll { flex: 1; overflow-y: auto; padding: 28px 20px; }
         .chat-inner { max-width: 740px; margin: 0 auto; display: flex; flex-direction: column; gap: 22px; }
 
-        /* WELCOME SPLASH & HOVER LOGO */
+        /* WELCOME SPLASH & IDLE FLOATING LOGO */
         .welcome { text-align: center; padding: 60px 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; margin: auto; }
-        .welcome-logo-container { position: relative; margin-bottom: 20px; display: inline-block; cursor: pointer; }
-        .welcome img { width: 140px; height: auto; display: block; transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), filter 0.4s ease; }
-        .welcome-logo-container:hover img { transform: scale(1.12) translateY(-5px); filter: drop-shadow(0 10px 20px rgba(183, 0, 255, 0.35)); }
+        .welcome-logo-container { position: relative; margin-bottom: 25px; display: inline-block; animation: floatAnimation 3s ease-in-out infinite; }
+        .welcome img { width: 140px; height: auto; display: block; filter: drop-shadow(0 8px 16px rgba(183, 0, 255, 0.15)); }
+
+        /* CSS Idle Floating Loop Animation */
+        @keyframes floatAnimation {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-12px); filter: drop-shadow(0 15px 24px rgba(183, 0, 255, 0.3)); }
+            100% { transform: translateY(0px); }
+        }
 
         /* MESSAGES */
         .msg-row { display: flex; gap: 13px; max-width: 85%; animation: slideIn 0.2s ease; }
@@ -176,7 +182,7 @@
         const $ = id => document.getElementById(id);
         
         let currentChatId = null;
-        let history = []; // Current active session array 
+        let history = []; 
         let allChats = JSON.parse(localStorage.getItem('neurachat_saved_sessions')) || {};
 
         function openModal(id) { $(id).style.display = 'flex'; setTimeout(() => $(id).classList.add('active'), 10); }
@@ -241,7 +247,6 @@
             input.value = '';
             input.style.height = 'auto';
 
-            // Generate Chat ID if first message
             if (!currentChatId) {
                 currentChatId = 'chat_' + Date.now();
                 allChats[currentChatId] = { title: text.substring(0, 24) + '...', messages: [] };
@@ -251,7 +256,6 @@
             allChats[currentChatId].messages.push({ role: 'user', content: text });
             saveToLocalStorage();
 
-            // LOADING STATE
             const loadingRow = document.createElement('div');
             loadingRow.className = 'msg-row ai';
             loadingRow.innerHTML = `<div class="av"><img src="logo.png" width="20" onerror="this.outerHTML=\'🤖\'"></div><div class="bubble typing">NeuraChat is thinking<span></span><span></span><span></span></div>`;
@@ -276,10 +280,7 @@
                 const reply = data.choices[0].message.content;
                 addMsg('ai', reply);
                 
-                // Save context history strings
                 history.push({role:'user', content:text}, {role:'assistant', content:reply});
-                
-                // Sync persistent structure 
                 allChats[currentChatId].messages.push({ role: 'ai', content: reply });
                 saveToLocalStorage();
                 
@@ -287,6 +288,13 @@
                 loadingRow.remove();
                 addMsg('ai', 'Connection error. Please try again.'); 
             }
+        }
+
+        function toggleTheme() {
+            const t = document.body.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
+            document.body.setAttribute('data-theme', t);
+            $('themeBtn').innerHTML = t === 'light' ? '🌙 Dark Mode' : '☀️ Light Mode';
+            localStorage.setItem('neurachat_theme', t);
         }
 
         function saveToLocalStorage() {
@@ -315,7 +323,6 @@
             const session = allChats[id];
             session.messages.forEach(msg => {
                 addMsg(msg.role, msg.content);
-                // rebuild active window context background arrays
                 if(msg.role === 'user') history.push({role: 'user', content: msg.content});
                 if(msg.role === 'ai') history.push({role: 'assistant', content: msg.content});
             });
@@ -341,7 +348,6 @@
                 </div>`; 
         }
 
-        // Init Layout Elements on load
         const savedTheme = localStorage.getItem('neurachat_theme') || 'light';
         document.body.setAttribute('data-theme', savedTheme);
         $('themeBtn').innerHTML = savedTheme === 'light' ? '🌙 Dark Mode' : '☀️ Light Mode';
