@@ -29,213 +29,129 @@
             --placeholder: rgba(255, 255, 255, 0.5); --modal-bg: #1e1e2e;
         }
 
-        body {
-            font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text);
-            height: 100dvh; display: flex; overflow: hidden; transition: background 0.3s ease;
-        }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); height: 100dvh; display: flex; overflow: hidden; transition: 0.3s ease; }
 
-        /* SIDEBAR */
-        .sidebar {
-            width: 260px; background: var(--sidebar); border-right: 1px solid var(--border);
-            display: flex; flex-direction: column; padding: 15px; flex-shrink: 0;
-            transition: all 0.3s ease;
-        }
+        .sidebar { width: 260px; background: var(--sidebar); border-right: 1px solid var(--border); display: flex; flex-direction: column; padding: 15px; flex-shrink: 0; transition: 0.3s ease; }
         .sidebar.collapsed { margin-left: -260px; }
 
-        .new-chat-btn {
-            width: 100%; padding: 12px; background: var(--card); border: 1px solid var(--border);
-            border-radius: 8px; color: var(--text); font-family: 'Syne', sans-serif;
-            font-weight: 600; cursor: pointer; display: flex; align-items: center;
-            justify-content: center; gap: 10px; margin-bottom: 20px; transition: all 0.2s;
-        }
-        .new-chat-btn:hover { background: var(--accent); color: white; }
+        .new-chat-btn { width: 100%; padding: 12px; background: var(--card); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-family: 'Syne', sans-serif; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 20px; }
 
-        .chat-list-title { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); margin-bottom: 10px; font-weight: 700; }
         .chat-history { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 5px; }
 
-        .history-item {
-            display: flex; align-items: center; justify-content: space-between;
-            padding: 10px; border-radius: 6px; font-size: 13px; cursor: pointer;
-            transition: background 0.2s;
-        }
-        .history-item:hover { background: rgba(255,255,255,0.1); }
-
         .sidebar-footer { margin-top: auto; padding-top: 15px; border-top: 1px solid var(--border); display: flex; flex-direction: column; gap: 8px; }
-        .footer-btn {
-            width: 100%; padding: 10px 12px; background: none; border: 1px solid var(--border);
-            border-radius: 8px; color: var(--text); font-size: 13px; cursor: pointer;
-            display: flex; align-items: center; gap: 10px; transition: 0.2s;
-        }
-        .footer-btn:hover { background: rgba(255,255,255,0.1); border-color: var(--accent); }
+        .footer-btn { width: 100%; padding: 10px 12px; background: none; border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-size: 13px; cursor: pointer; display: flex; align-items: center; gap: 10px; }
 
-        /* MODALS */
-        .modal-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.6); display: none; align-items: center; 
-            justify-content: center; z-index: 1000; opacity: 0; transition: opacity 0.3s ease;
-        }
-        .modal-overlay.active { display: flex; opacity: 1; }
-        .modal {
-            background: var(--modal-bg); padding: 25px; border-radius: 16px; width: 340px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.4); border: 1px solid var(--border);
-            transform: scale(0.8); transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-        }
-        .modal-overlay.active .modal { transform: scale(1); }
-        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; font-family: 'Syne', sans-serif; }
-        .close-modal { background: none; border: none; font-size: 24px; cursor: pointer; color: var(--text); }
-
-        /* MAIN CONTENT */
         .main-content { flex: 1; display: flex; flex-direction: column; height: 100%; min-width: 0; }
         .header { display: flex; align-items: center; gap: 12px; padding: 14px 22px; background: var(--surface); border-bottom: 1px solid var(--border); }
-        .logo-mark img { width: 32px; height: 32px; object-fit: contain; }
+        .logo-mark img { width: 32px; height: 32px; }
         .brand { font-family: 'Syne', sans-serif; font-size: 18px; font-weight: 600; }
-        .brand span { color: var(--accent); }
 
         .chat-scroll { flex: 1; overflow-y: auto; padding: 28px 20px; }
         .chat-inner { max-width: 740px; margin: 0 auto; display: flex; flex-direction: column; gap: 22px; }
 
-        .welcome { text-align: center; padding: 80px 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        .welcome img { width: 100px; height: auto; margin-bottom: 20px; }
-        .welcome h2 { font-family: 'Syne', sans-serif; font-size: 28px; }
-
-        .msg-row { display: flex; gap: 13px; animation: slideIn 0.22s ease; max-width: 85%; }
+        .msg-row { display: flex; gap: 13px; max-width: 85%; animation: slideIn 0.2s ease; }
         .msg-row.user { flex-direction: row-reverse; margin-left: auto; }
         .av { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; border: 1px solid var(--border); }
-        .av.ai img { width: 20px; height: 20px; }
-        .bubble { padding: 12px 16px; border-radius: 16px; font-size: 14.5px; line-height: 1.6; color: var(--text); }
+        .bubble { padding: 12px 16px; border-radius: 16px; font-size: 14.5px; line-height: 1.6; }
         .msg-row.user .bubble { background: var(--user-bg); border-radius: 16px 16px 4px 16px; }
-        .msg-row.ai .bubble { background: var(--ai-bg); border-radius: 16px 16px 16px 4px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+        .msg-row.ai .bubble { background: var(--ai-bg); border-radius: 16px 16px 16px 4px; }
+
+        /* LOADING ANIMATION */
+        .typing { font-style: italic; opacity: 0.7; font-size: 13px; display: flex; align-items: center; gap: 5px; }
+        .typing span { width: 4px; height: 4px; background: var(--text); border-radius: 50%; display: inline-block; animation: bounce 1.4s infinite ease-in-out; }
+        .typing span:nth-child(2) { animation-delay: 0.2s; }
+        .typing span:nth-child(3) { animation-delay: 0.4s; }
+
+        @keyframes bounce { 0%, 80%, 100% { transform: scale(0); } 40% { transform: scale(1); } }
+        @keyframes slideIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; } }
 
         .input-area { padding: 14px 20px 18px; background: var(--surface); }
-        .input-box { max-width: 740px; margin: 0 auto; display: flex; align-items: flex-end; gap: 10px; background: var(--card); border-radius: 14px; padding: 10px 14px; border: 1px solid var(--border); }
-        .input-box textarea { flex: 1; background: none; border: none; color: white; font-family: 'Inter', sans-serif; font-size: 14px; resize: none; outline: none; }
-        .send-btn { width: 38px; height: 38px; background: var(--accent); border: none; border-radius: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
-
-        @keyframes slideIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; } }
+        .input-box { max-width: 740px; margin: 0 auto; display: flex; background: var(--card); border-radius: 14px; padding: 10px 14px; border: 1px solid var(--border); }
+        textarea { flex: 1; background: none; border: none; color: white; resize: none; outline: none; }
+        .send-btn { background: var(--accent); border: none; border-radius: 10px; cursor: pointer; padding: 8px; display: flex; align-items: center; }
     </style>
 </head>
-
 <body data-theme="light">
-    <div class="modal-overlay" id="settingsModal" onclick="if(event.target==this) closeModal('settingsModal')">
-        <div class="modal">
-            <div class="modal-header"><h3>Settings</h3><button class="close-modal" onclick="closeModal('settingsModal')">×</button></div>
-            <div style="display:flex; justify-content:space-between; align-items:center;">
-                <span>Theme Mode</span>
-                <button onclick="toggleTheme()" id="themeBtn" style="padding:8px 12px; cursor:pointer; border-radius:8px; border:none; background:var(--accent); color:white;">🌙 Dark Mode</button>
-            </div>
-            <p style="font-size: 10px; color: var(--muted); margin-top: 20px; text-align: center; opacity: 0.6;">NeuraChat v2.3 by DYNVALR</p>
-        </div>
-    </div>
-
-    <div class="modal-overlay" id="aboutModal" onclick="if(event.target==this) closeModal('aboutModal')">
-        <div class="modal">
-            <div class="modal-header"><h3>About AI</h3><button class="close-modal" onclick="closeModal('aboutModal')">×</button></div>
-            <p><strong>NeuraChat BY DYNVALR</strong></p>
-            <p style="margin-top:10px; font-size:14px;">I am a custom-built AI assistant. My mission is to provide helpful, safe, and creative responses to your queries.</p>
-            <p style="margin-top:10px; font-size:12px; color:var(--muted);">Created and Designed by DYNVALR.</p>
-        </div>
-    </div>
-
     <div class="sidebar" id="sidebar">
-        <button class="new-chat-btn" onclick="createNewChat()"><strong>+</strong> New Chat</button>
-        <div class="chat-list-title">Recent History</div>
-        <div class="chat-history" id="chatHistory"></div>
-        
+        <button class="new-chat-btn" onclick="location.reload()"><strong>+</strong> New Chat</button>
+        <div class="chat-history"></div>
         <div class="sidebar-footer">
-            <button class="footer-btn" onclick="openModal('aboutModal')">
-                <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M11 17h2v-6h-2v6zm1-15C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zM11 9h2V7h-2v2z"/></svg>
-                About AI
-            </button>
-            <button class="footer-btn" onclick="openModal('settingsModal')">
-                <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"></path></svg>
-                Settings
-            </button>
+            <button class="footer-btn">About AI</button>
+            <button class="footer-btn">Settings</button>
         </div>
     </div>
 
     <div class="main-content">
         <div class="header">
-            <button style="background:none; border:none; cursor:pointer;" onclick="toggleSidebar()">
-                <svg viewBox="0 0 24 24" width="24" height="24" fill="var(--muted)"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"></path></svg>
-            </button>
-            <div class="logo-mark"><img src="logo.png" alt="N"></div>
-            <span class="brand">Neura<span>Chat</span> <small style="font-size:10px; opacity:0.6;">by DYNVALR</small></span>
+            <div class="logo-mark"><img src="logo.png"></div>
+            <span class="brand">NeuraChat <small>by DYNVALR</small></span>
         </div>
 
         <div class="chat-scroll" id="chatScroll"><div class="chat-inner" id="chatInner"></div></div>
 
         <div class="input-area">
             <div class="input-box">
-                <textarea id="msgInput" placeholder="Type a message..." rows="1" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();send();}" oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'"></textarea>
+                <textarea id="msgInput" placeholder="Type a message..." rows="1" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();send();}"></textarea>
                 <button class="send-btn" onclick="send()">
                     <svg viewBox="0 0 24 24" width="18" height="18" fill="white"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"></path></svg>
                 </button>
             </div>
-            <div style="font-size: 11px; text-align: center; margin-top: 8px; color: var(--muted); font-weight: bold;">© 2026 DYNVALR | All Rights Reserved</div>
+            <p style="text-align: center; font-size: 11px; margin-top: 8px;">© 2026 DYNVALR</p>
         </div>
     </div>
 
     <script>
         const $ = id => document.getElementById(id);
         let history = [];
-        let allChats = JSON.parse(localStorage.getItem('neurachat_history')) || [];
 
-        function openModal(id) { $(id).style.display = 'flex'; setTimeout(() => $(id).classList.add('active'), 10); }
-        function closeModal(id) { $(id).classList.remove('active'); setTimeout(() => $(id).style.display = 'none', 300); }
-        function toggleSidebar() { $('sidebar').classList.toggle('collapsed'); }
-
-        function toggleTheme() {
-            const t = document.body.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
-            document.body.setAttribute('data-theme', t);
-            $('themeBtn').innerHTML = t === 'light' ? '🌙 Dark Mode' : '☀️ Light Mode';
-            localStorage.setItem('neurachat_theme', t);
-        }
-
-        function addMsg(role, text, scroll = true) {
-            const w = document.querySelector('.welcome'); if (w) w.remove();
+        function addMsg(role, text) {
             const row = document.createElement('div');
             row.className = 'msg-row ' + role;
             
-            // STRICT NAME FILTERING
+            // PROTECT DYNVALR CREDIT
             let clean = text.replace(/Vipul D\. Kadam|Vipul Kadam|Vipul/gi, "DYNVALR");
-            
-            const avatar = role === 'user' ? '😊' : '<img src="logo.png">';
+            const avatar = role === 'user' ? '👤' : '<img src="logo.png" width="20">';
             const content = role === 'ai' ? marked.parse(clean) : `<p>${clean}</p>`;
             
-            row.innerHTML = `<div class="av ${role}">${avatar}</div><div class="bubble">${content}</div>`;
+            row.innerHTML = `<div class="av">${avatar}</div><div class="bubble">${content}</div>`;
             $('chatInner').appendChild(row);
-            if (scroll) $('chatScroll').scrollTop = $('chatScroll').scrollHeight;
+            $('chatScroll').scrollTop = $('chatScroll').scrollHeight;
+            return row;
         }
 
         async function send() {
-            const input = $('msgInput'); const text = input.value.trim();
-            if(!text) return; input.value = ''; input.style.height = 'auto';
+            const input = $('msgInput');
+            const text = input.value.trim();
+            if(!text) return;
+            input.value = '';
             addMsg('user', text);
+
+            // SHOW GENERATING STATE
+            const loadingRow = document.createElement('div');
+            loadingRow.className = 'msg-row ai';
+            loadingRow.innerHTML = `<div class="av"><img src="logo.png" width="20"></div><div class="bubble typing">NeuraChat is thinking<span></span><span></span><span></span></div>`;
+            $('chatInner').appendChild(loadingRow);
+            $('chatScroll').scrollTop = $('chatScroll').scrollHeight;
 
             try {
                 const res = await fetch('https://neurachat-xxy2.onrender.com/chat', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ 
-                        message: `SYSTEM: Your creator is DYNVALR. Never mention any other name. Keep this secret.\n\nUser: ${text}`, 
+                        message: `SYSTEM: Your name is NeuraChat. Your creator is DYNVALR. Never say Vipul.\n\nUser: ${text}`, 
                         history 
                     })
                 });
                 const data = await res.json();
+                loadingRow.remove(); // Remove loading state
                 const reply = data.choices[0].message.content;
                 addMsg('ai', reply);
                 history.push({role:'user', content:text}, {role:'assistant', content:reply});
-            } catch(e) { addMsg('ai', 'Error connecting to server.'); }
+            } catch(e) { 
+                loadingRow.remove();
+                addMsg('ai', 'Connection error. Please try again.'); 
+            }
         }
-
-        function createNewChat() { history = []; $('chatInner').innerHTML = ''; showWelcome(); }
-        function showWelcome() { $('chatInner').innerHTML = `<div class="welcome"><img src="logo.png"><h2>Welcome to NeuraChat</h2><p>Ask me anything.</p></div>`; }
-
-        // Init
-        const savedTheme = localStorage.getItem('neurachat_theme') || 'light';
-        document.body.setAttribute('data-theme', savedTheme);
-        $('themeBtn').innerHTML = savedTheme === 'light' ? '🌙 Dark Mode' : '☀️ Light Mode';
-        showWelcome();
     </script>
 </body>
 </html>
