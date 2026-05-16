@@ -40,6 +40,11 @@
 
         .chat-list-title { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); margin-bottom: 10px; font-weight: 700; }
         .chat-history { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 5px; }
+        
+        /* SAVED CHAT ITEM LINKS */
+        .chat-history-item { padding: 10px; background: rgba(255,255,255,0.1); border: 1px solid transparent; border-radius: 8px; color: var(--text); font-size: 13.5px; cursor: pointer; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; transition: 0.2s; text-align: left; }
+        .chat-history-item:hover { background: var(--card); border-color: var(--border); }
+        .chat-history-item.active { background: var(--accent); color: white; }
 
         .sidebar-footer { margin-top: auto; padding-top: 15px; border-top: 1px solid var(--border); display: flex; flex-direction: column; gap: 8px; }
         .footer-btn { width: 100%; padding: 10px 12px; background: none; border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-size: 13px; cursor: pointer; display: flex; align-items: center; gap: 10px; transition: 0.2s; }
@@ -64,11 +69,11 @@
         .chat-scroll { flex: 1; overflow-y: auto; padding: 28px 20px; }
         .chat-inner { max-width: 740px; margin: 0 auto; display: flex; flex-direction: column; gap: 22px; }
 
-        /* WELCOME SPLASH */
+        /* WELCOME SPLASH & HOVER LOGO */
         .welcome { text-align: center; padding: 60px 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; margin: auto; }
-        .welcome img { width: 140px; height: auto; margin-bottom: 20px; }
-        .welcome h2 { font-family: 'Syne', sans-serif; font-size: 28px; margin-bottom: 8px; }
-        .welcome p { color: var(--muted); font-size: 15px; }
+        .welcome-logo-container { position: relative; margin-bottom: 20px; display: inline-block; cursor: pointer; }
+        .welcome img { width: 140px; height: auto; display: block; transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), filter 0.4s ease; }
+        .welcome-logo-container:hover img { transform: scale(1.12) translateY(-5px); filter: drop-shadow(0 10px 20px rgba(183, 0, 255, 0.35)); }
 
         /* MESSAGES */
         .msg-row { display: flex; gap: 13px; max-width: 85%; animation: slideIn 0.2s ease; }
@@ -169,7 +174,10 @@
 
     <script>
         const $ = id => document.getElementById(id);
-        let history = [];
+        
+        let currentChatId = null;
+        let history = []; // Current active session array 
+        let allChats = JSON.parse(localStorage.getItem('neurachat_saved_sessions')) || {};
 
         function openModal(id) { $(id).style.display = 'flex'; setTimeout(() => $(id).classList.add('active'), 10); }
         function closeModal(id) { $(id).classList.remove('active'); setTimeout(() => $(id).style.display = 'none', 300); }
@@ -189,7 +197,6 @@
             const row = document.createElement('div');
             row.className = 'msg-row ' + role;
             
-            // CLEAN RESPONSE AND RENDER CODE HIGHLIGHTS
             let clean = text.replace(/Vipul D\. Kadam|Vipul Kadam|Vipul/gi, "DYNVALR");
             const avatar = role === 'user' ? '👤' : '<img src="logo.png" width="20" onerror="this.outerHTML=\'🤖\'">';
             const content = role === 'ai' ? marked.parse(clean) : `<p>${clean}</p>`;
@@ -197,19 +204,15 @@
             row.innerHTML = `<div class="av">${avatar}</div><div class="bubble">${content}</div>`;
             $('chatInner').appendChild(row);
             
-            // Highlight code blocks securely and inject dynamic copy buttons
             if (role === 'ai') {
                 row.querySelectorAll('pre').forEach((preBlock) => {
-                    // Create copy button element
                     const btn = document.createElement('button');
                     btn.className = 'code-copy-btn';
                     btn.innerText = 'Copy';
                     
-                    // Setup operational click event logic
                     btn.onclick = async () => {
                         const targetCodeNode = preBlock.querySelector('code');
                         const codeString = targetCodeNode ? targetCodeNode.innerText : preBlock.innerText;
-                        
                         try {
                             await navigator.clipboard.writeText(codeString);
                             btn.innerText = 'Copied!';
@@ -218,14 +221,10 @@
                                 btn.innerText = 'Copy';
                                 btn.classList.remove('copied');
                             }, 2000);
-                        } catch (err) {
-                            console.error('Failed to copy code: ', err);
-                        }
+                        } catch (err) { console.error(err); }
                     };
-                    
                     preBlock.appendChild(btn);
                     
-                    // Trigger highlighting via syntax highlighter
                     const innerCode = preBlock.querySelector('code');
                     if (innerCode) hljs.highlightElement(innerCode);
                 });
@@ -241,12 +240,18 @@
             if(!text) return;
             input.value = '';
             input.style.height = 'auto';
+
+            // Generate Chat ID if first message
+            if (!currentChatId) {
+                currentChatId = 'chat_' + Date.now();
+                allChats[currentChatId] = { title: text.substring(0, 24) + '...', messages: [] };
+            }
+
             addMsg('user', text);
+            allChats[currentChatId].messages.push({ role: 'user', content: text });
+            saveToLocalStorage();
 
-            const welcomeNode = document.querySelector('.welcome');
-            if (welcomeNode) welcomeNode.remove();
-
-            // SHOW GENERATING STATE
+            // LOADING STATE
             const loadingRow = document.createElement('div');
             loadingRow.className = 'msg-row ai';
             loadingRow.innerHTML = `<div class="av"><img src="logo.png" width="20" onerror="this.outerHTML=\'🤖\'"></div><div class="bubble typing">NeuraChat is thinking<span></span><span></span><span></span></div>`;
@@ -267,35 +272,82 @@
                 });
                 const data = await res.json();
                 loadingRow.remove(); 
+                
                 const reply = data.choices[0].message.content;
                 addMsg('ai', reply);
+                
+                // Save context history strings
                 history.push({role:'user', content:text}, {role:'assistant', content:reply});
+                
+                // Sync persistent structure 
+                allChats[currentChatId].messages.push({ role: 'ai', content: reply });
+                saveToLocalStorage();
+                
             } catch(e) { 
                 loadingRow.remove();
                 addMsg('ai', 'Connection error. Please try again.'); 
             }
         }
 
+        function saveToLocalStorage() {
+            localStorage.setItem('neurachat_saved_sessions', JSON.stringify(allChats));
+            renderSidebarHistory();
+        }
+
+        function renderSidebarHistory() {
+            const historyContainer = $('chatHistory');
+            historyContainer.innerHTML = '';
+            
+            Object.keys(allChats).sort((a,b) => b.split('_')[1] - a.split('_')[1]).forEach(id => {
+                const btn = document.createElement('button');
+                btn.className = 'chat-history-item' + (id === currentChatId ? ' active' : '');
+                btn.innerText = allChats[id].title;
+                btn.onclick = () => loadSavedChat(id);
+                historyContainer.appendChild(btn);
+            });
+        }
+
+        function loadSavedChat(id) {
+            currentChatId = id;
+            $('chatInner').innerHTML = '';
+            history = [];
+            
+            const session = allChats[id];
+            session.messages.forEach(msg => {
+                addMsg(msg.role, msg.content);
+                // rebuild active window context background arrays
+                if(msg.role === 'user') history.push({role: 'user', content: msg.content});
+                if(msg.role === 'ai') history.push({role: 'assistant', content: msg.content});
+            });
+            renderSidebarHistory();
+        }
+
         function createNewChat() { 
+            currentChatId = null;
             history = []; 
             $('chatInner').innerHTML = ''; 
             showWelcome(); 
+            renderSidebarHistory();
         }
 
         function showWelcome() { 
             $('chatInner').innerHTML = `
                 <div class="welcome">
-                    <img src="logo.png" alt="NeuraChat Logo" onerror="this.style.display='none'">
+                    <div class="welcome-logo-container">
+                        <img src="logo.png" alt="NeuraChat Logo" onerror="this.style.display='none'; this.parentElement.innerText='🤖'">
+                    </div>
                     <h2>Welcome to NeuraChat</h2>
                     <p>Ask me anything. Built to answer creatively and securely.</p>
                 </div>`; 
         }
 
-        // Initialize theme setups
+        // Init Layout Elements on load
         const savedTheme = localStorage.getItem('neurachat_theme') || 'light';
         document.body.setAttribute('data-theme', savedTheme);
         $('themeBtn').innerHTML = savedTheme === 'light' ? '🌙 Dark Mode' : '☀️ Light Mode';
+        
         showWelcome();
+        renderSidebarHistory();
     </script>
 </body>
 </html>
