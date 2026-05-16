@@ -78,9 +78,13 @@
         .msg-row.user .bubble { background: var(--user-bg); border-radius: 16px 16px 4px 16px; }
         .msg-row.ai .bubble { background: var(--ai-bg); border-radius: 16px 16px 16px 4px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
 
-        /* CODE BLOCK MARKDOWN GRAPHICS FIX */
-        pre { background: #1a1a24 !important; padding: 14px; border-radius: 8px; overflow-x: auto; margin: 10px 0; border: 1px solid rgba(255,255,255,0.1); }
+        /* CODE BLOCK MARKDOWN SETUP & COPY BUTTON */
+        pre { background: #1a1a24 !important; padding: 14px; border-radius: 8px; overflow-x: auto; margin: 12px 0; border: 1px solid rgba(255,255,255,0.1); position: relative; }
         code { font-family: 'Courier New', Courier, monospace; font-size: 13px; }
+        
+        .code-copy-btn { position: absolute; top: 6px; right: 6px; background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 5px; color: #ececf1; font-size: 11px; padding: 4px 8px; cursor: pointer; font-family: 'Inter', sans-serif; font-weight: 500; transition: 0.2s ease; outline: none; }
+        .code-copy-btn:hover { background: rgba(255, 255, 255, 0.2); border-color: var(--accent); }
+        .code-copy-btn.copied { background: #00b074; border-color: #00b074; color: white; }
 
         /* LOADING ANIMATION */
         .typing { font-style: italic; opacity: 0.7; font-size: 13px; display: flex; align-items: center; gap: 5px; padding: 4px 0; }
@@ -193,10 +197,37 @@
             row.innerHTML = `<div class="av">${avatar}</div><div class="bubble">${content}</div>`;
             $('chatInner').appendChild(row);
             
-            // Highlight code blocks securely
+            // Highlight code blocks securely and inject dynamic copy buttons
             if (role === 'ai') {
-                row.querySelectorAll('pre code').forEach((block) => {
-                    hljs.highlightElement(block);
+                row.querySelectorAll('pre').forEach((preBlock) => {
+                    // Create copy button element
+                    const btn = document.createElement('button');
+                    btn.className = 'code-copy-btn';
+                    btn.innerText = 'Copy';
+                    
+                    // Setup operational click event logic
+                    btn.onclick = async () => {
+                        const targetCodeNode = preBlock.querySelector('code');
+                        const codeString = targetCodeNode ? targetCodeNode.innerText : preBlock.innerText;
+                        
+                        try {
+                            await navigator.clipboard.writeText(codeString);
+                            btn.innerText = 'Copied!';
+                            btn.classList.add('copied');
+                            setTimeout(() => {
+                                btn.innerText = 'Copy';
+                                btn.classList.remove('copied');
+                            }, 2000);
+                        } catch (err) {
+                            console.error('Failed to copy code: ', err);
+                        }
+                    };
+                    
+                    preBlock.appendChild(btn);
+                    
+                    // Trigger highlighting via syntax highlighter
+                    const innerCode = preBlock.querySelector('code');
+                    if (innerCode) hljs.highlightElement(innerCode);
                 });
             }
             
