@@ -74,9 +74,13 @@
         .msg-row { display: flex; gap: 13px; max-width: 85%; animation: slideIn 0.2s ease; }
         .msg-row.user { flex-direction: row-reverse; margin-left: auto; }
         .av { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; border: 1px solid var(--border); overflow: hidden; background: var(--ai-bg); }
-        .bubble { padding: 12px 16px; border-radius: 16px; font-size: 14.5px; line-height: 1.6; color: var(--text); }
+        .bubble { padding: 12px 16px; border-radius: 16px; font-size: 14.5px; line-height: 1.6; color: var(--text); word-break: break-word; }
         .msg-row.user .bubble { background: var(--user-bg); border-radius: 16px 16px 4px 16px; }
         .msg-row.ai .bubble { background: var(--ai-bg); border-radius: 16px 16px 16px 4px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+
+        /* CODE BLOCK MARKDOWN GRAPHICS FIX */
+        pre { background: #1a1a24 !important; padding: 14px; border-radius: 8px; overflow-x: auto; margin: 10px 0; border: 1px solid rgba(255,255,255,0.1); }
+        code { font-family: 'Courier New', Courier, monospace; font-size: 13px; }
 
         /* LOADING ANIMATION */
         .typing { font-style: italic; opacity: 0.7; font-size: 13px; display: flex; align-items: center; gap: 5px; padding: 4px 0; }
@@ -181,13 +185,21 @@
             const row = document.createElement('div');
             row.className = 'msg-row ' + role;
             
-            // PROTECT DYNVALR CREDIT
+            // CLEAN RESPONSE AND RENDER CODE HIGHLIGHTS
             let clean = text.replace(/Vipul D\. Kadam|Vipul Kadam|Vipul/gi, "DYNVALR");
             const avatar = role === 'user' ? '👤' : '<img src="logo.png" width="20" onerror="this.outerHTML=\'🤖\'">';
             const content = role === 'ai' ? marked.parse(clean) : `<p>${clean}</p>`;
             
             row.innerHTML = `<div class="av">${avatar}</div><div class="bubble">${content}</div>`;
             $('chatInner').appendChild(row);
+            
+            // Highlight code blocks securely
+            if (role === 'ai') {
+                row.querySelectorAll('pre code').forEach((block) => {
+                    hljs.highlightElement(block);
+                });
+            }
+            
             $('chatScroll').scrollTop = $('chatScroll').scrollHeight;
             return row;
         }
@@ -200,10 +212,10 @@
             input.style.height = 'auto';
             addMsg('user', text);
 
-            // SHOW GENERATING STATE
             const welcomeNode = document.querySelector('.welcome');
             if (welcomeNode) welcomeNode.remove();
 
+            // SHOW GENERATING STATE
             const loadingRow = document.createElement('div');
             loadingRow.className = 'msg-row ai';
             loadingRow.innerHTML = `<div class="av"><img src="logo.png" width="20" onerror="this.outerHTML=\'🤖\'"></div><div class="bubble typing">NeuraChat is thinking<span></span><span></span><span></span></div>`;
@@ -215,12 +227,15 @@
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ 
-                        message: `SYSTEM: Your name is NeuraChat. Your creator is DYNVALR. Never say Vipul.\n\nUser: ${text}`, 
-                        history 
+                        message: text, 
+                        history: [
+                            { role: "system", content: "Your name is NeuraChat. Your creator is DYNVALR. Answer all user requests creatively, completely, and write full source code natively when asked." },
+                            ...history
+                        ]
                     })
                 });
                 const data = await res.json();
-                loadingRow.remove(); // Remove loading state
+                loadingRow.remove(); 
                 const reply = data.choices[0].message.content;
                 addMsg('ai', reply);
                 history.push({role:'user', content:text}, {role:'assistant', content:reply});
@@ -245,7 +260,7 @@
                 </div>`; 
         }
 
-        // Initialize setup
+        // Initialize theme setups
         const savedTheme = localStorage.getItem('neurachat_theme') || 'light';
         document.body.setAttribute('data-theme', savedTheme);
         $('themeBtn').innerHTML = savedTheme === 'light' ? '🌙 Dark Mode' : '☀️ Light Mode';
