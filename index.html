@@ -41,7 +41,6 @@
         .chat-list-title { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); margin-bottom: 10px; font-weight: 700; }
         .chat-history { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 5px; }
         
-        /* SAVED CHAT ITEM LINKS */
         .chat-history-item { padding: 10px; background: rgba(255,255,255,0.1); border: 1px solid transparent; border-radius: 8px; color: var(--text); font-size: 13.5px; cursor: pointer; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; transition: 0.2s; text-align: left; }
         .chat-history-item:hover { background: var(--card); border-color: var(--border); }
         .chat-history-item.active { background: var(--accent); color: white; }
@@ -114,7 +113,10 @@
         .send-btn:active { transform: scale(0.95); }
     </style>
 </head>
-<body data-theme="dark"> <div class="modal-overlay" id="settingsModal" onclick="if(event.target==this) closeModal('settingsModal')">
+<body data-theme="dark">
+
+    <!-- SETTINGS MODAL -->
+    <div class="modal-overlay" id="settingsModal" onclick="if(event.target==this) closeModal('settingsModal')">
         <div class="modal">
             <div class="modal-header"><h3>Settings</h3><button class="close-modal" onclick="closeModal('settingsModal')">×</button></div>
             <div style="display:flex; justify-content:space-between; align-items:center;">
@@ -125,6 +127,7 @@
         </div>
     </div>
 
+    <!-- ABOUT AI MODAL -->
     <div class="modal-overlay" id="aboutModal" onclick="if(event.target==this) closeModal('aboutModal')">
         <div class="modal">
             <div class="modal-header"><h3>About AI</h3><button class="close-modal" onclick="closeModal('aboutModal')">×</button></div>
@@ -134,6 +137,7 @@
         </div>
     </div>
 
+    <!-- SIDEBAR PANEL -->
     <div class="sidebar" id="sidebar">
         <button class="new-chat-btn" onclick="createNewChat()"><strong>+</strong> New Chat</button>
         <div class="chat-list-title">Recent History</div>
@@ -151,6 +155,7 @@
         </div>
     </div>
 
+    <!-- MAIN DISPLAY CONTENT -->
     <div class="main-content">
         <div class="header">
             <button class="menu-toggle" onclick="toggleSidebar()">
@@ -237,6 +242,20 @@
             return row;
         }
 
+        // Dedicated helper to handle server wakeups
+        async function fetchWithRetry(url, options, retries = 3, delay = 4000) {
+            for (let i = 0; i < retries; i++) {
+                try {
+                    const res = await fetch(url, options);
+                    if (res.ok) return await res.json();
+                } catch (err) {
+                    if (i === retries - 1) throw err;
+                }
+                // Wait before retrying to give Render time to spin up
+                await new Promise(resolve => setTimeout(resolve, delay));
+            }
+        }
+
         async function send() {
             const input = $('msgInput');
             const text = input.value.trim();
@@ -255,25 +274,19 @@
 
             const loadingRow = document.createElement('div');
             loadingRow.className = 'msg-row ai';
-            loadingRow.innerHTML = `<div class="av"><img src="logo.png" width="20" onerror="this.outerHTML=\'🤖\'"></div><div class="bubble typing">NeuraChat is thinking<span></span><span></span><span></span></div>`;
+            loadingRow.innerHTML = `<div class="av"><img src="logo.png" width="20" onerror="this.outerHTML=\'🤖\'"></div><div class="bubble typing"><span id="loadText">NeuraChat is waking up backend...</span><span></span><span></span><span></span></div>`;
             $('chatInner').appendChild(loadingRow);
             $('chatScroll').scrollTop = $('chatScroll').scrollHeight;
 
-            // Added higher connection patience setup in case backend is sleeping on Render
             try {
-                const res = await fetch('https://neurachat-xxy2.onrender.com/chat', {
+                // Using retry engine to safely wait for Render spin-up cycles
+                const data = await fetchWithRetry('https://neurachat-xxy2.onrender.com/chat', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ 
-                        message: text, 
-                        history: history
-                    })
+                    body: JSON.stringify({ message: text, history: history })
                 });
                 
-                if (!res.ok) throw new Error('Server side fault');
-                const data = await res.json();
                 loadingRow.remove(); 
-                
                 const reply = data.choices[0].message.content;
                 addMsg('ai', reply);
                 
@@ -283,7 +296,7 @@
                 
             } catch(e) { 
                 loadingRow.remove();
-                addMsg('ai', 'Connection error. Your backend may be spinning up. Please try again in a few moments.'); 
+                addMsg('ai', 'Connection error. Your backend service on Render is still offline or building. Check your Render Dashboard logs to ensure it status says "Live".'); 
             }
         }
 
