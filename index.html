@@ -87,19 +87,25 @@
         .msg-row.user .bubble { background: var(--user-bg); border-radius: 16px 16px 4px 16px; }
         .msg-row.ai .bubble { background: var(--ai-bg); border-radius: 16px 16px 16px 4px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
 
-        /* CODE BLOCK MODIFICATIONS (SCROLLBAR & HEADER) */
+/* FORCE CODE BLOCKS TO SCROLL VERTICALLY & HORIZONTALLY */
         pre { 
             background: #1a1a24 !important; 
-            padding: 35px 14px 14px 14px; /* Space at top for language and copy labels */
+            padding: 35px 14px 14px 14px !important;
             border-radius: 8px; 
-            overflow: auto; 
             margin: 12px 0; 
             border: 1px solid rgba(255,255,255,0.1); 
             position: relative; 
-            max-height: 400px; /* Limits the vertical space */
+            display: block !important;
+            max-height: 350px !important;
+            overflow-y: auto !important;
+            overflow-x: auto !important;
         }
-        code { font-family: 'Courier New', Courier, monospace; font-size: 13px; }
-        
+        code { 
+            font-family: 'Courier New', Courier, monospace; 
+            font-size: 13px; 
+            white-space: pre !important;
+            display: block !important;
+        }
         /* Language tag top left */
         .code-lang-label {
             position: absolute;
