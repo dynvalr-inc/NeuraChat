@@ -11,7 +11,7 @@ app.use(express.static('.'));
 app.post('/chat', async (req, res) => {
     const userMessage = req.body.message;
     const chatHistory = req.body.history || []; // Get previous messages
-    const selectedModel = req.body.model || "google/gemini-2.0-flash-lite-001";
+    const selectedModel = req.body.model || "google/gemini-2.5-flash-lite";
     const apiKey = process.env.OPENROUTER_API_KEY || "";
 
     // 1. Define the AI's identity
