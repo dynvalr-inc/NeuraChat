@@ -69,10 +69,10 @@
         
         /* MAKES THE CHAT NARROWER FOR BETTER RESOLUTION DESIGN */
         /* 1. UPDATE THE INNER CHAT CONTAINER */
-        .chat-inner { 
-            max-width: 640px; 
+      .chat-inner { 
+            max-width: 85%; 
             width: 100%;
-            min-width: 0; /* CRITICAL: Prevents long code from pushing the width wide open */
+            min-width: 0; 
             margin: 0 auto; 
             display: flex; 
             flex-direction: column; 
@@ -100,7 +100,7 @@
             background: var(--ai-bg); 
             border-radius: 16px 16px 16px 4px; 
             box-shadow: 0 2px 8px rgba(0,0,0,0.05); 
-            min-width: 0; /* Forces markdown contents to stay inside boundaries */
+            min-width: 0; 
             width: 100%;
         }
         /* FORCE CODE BLOCKS TO SCROLL VERTICALLY & HORIZONTALLY */
@@ -159,7 +159,17 @@
 
         /* INPUT AREA */
         .input-area { padding: 14px 20px 18px; background: var(--surface); }
-        .input-box { max-width: 640px; margin: 0 auto; display: flex; align-items: flex-end; gap: 10px; background: var(--card); border-radius: 14px; padding: 10px 14px; border: 1px solid var(--border); }
+        .input-box { 
+            max-width: 85%; 
+            margin: 0 auto; 
+            display: flex; 
+            align-items: flex-end; 
+            gap: 10px; 
+            background: var(--card); 
+            border-radius: 14px; 
+            padding: 10px 14px; 
+            border: 1px solid var(--border); 
+        }
         textarea { flex: 1; background: none; border: none; color: white; font-family: 'Inter', sans-serif; font-size: 14px; resize: none; outline: none; max-height: 200px; }
         ::placeholder { color: var(--placeholder); opacity: 0.8; }
         .send-btn { background: var(--accent); border: none; border-radius: 10px; cursor: pointer; padding: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: transform 0.1s; }
