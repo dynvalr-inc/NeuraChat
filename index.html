@@ -66,7 +66,10 @@
         .brand span { color: var(--accent); }
 
         .chat-scroll { flex: 1; overflow-y: auto; padding: 28px 20px; }
-        .chat-inner { max-width: 740px; margin: 0 auto; display: flex; flex-direction: column; gap: 22px; }
+        
+        /* MAKES THE CHAT NARROWER FOR BETTER RESOLUTION DESIGN */
+        .chat-inner { max-width: 640px; margin: 0 auto; display: flex; flex-direction: column; gap: 22px; }
+
         /* WELCOME SPLASH & IDLE FLOATING LOGO */
         .welcome { text-align: center; padding: 60px 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; margin: auto; }
         .welcome-logo-container { position: relative; margin-bottom: 25px; display: inline-block; animation: floatAnimation 3s ease-in-out infinite; }
@@ -86,7 +89,7 @@
         .msg-row.user .bubble { background: var(--user-bg); border-radius: 16px 16px 4px 16px; }
         .msg-row.ai .bubble { background: var(--ai-bg); border-radius: 16px 16px 16px 4px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
 
-/* FORCE CODE BLOCKS TO SCROLL VERTICALLY & HORIZONTALLY */
+        /* FORCE CODE BLOCKS TO SCROLL VERTICALLY & HORIZONTALLY */
         pre { 
             background: #1a1a24 !important; 
             padding: 35px 14px 14px 14px !important;
@@ -105,6 +108,7 @@
             white-space: pre !important;
             display: block !important;
         }
+        
         /* Language tag top left */
         .code-lang-label {
             position: absolute;
@@ -141,7 +145,7 @@
 
         /* INPUT AREA */
         .input-area { padding: 14px 20px 18px; background: var(--surface); }
-        .input-box { max-width: 740px; margin: 0 auto; display: flex; align-items: flex-end; gap: 10px; background: var(--card); border-radius: 14px; padding: 10px 14px; border: 1px solid var(--border); }
+        .input-box { max-width: 640px; margin: 0 auto; display: flex; align-items: flex-end; gap: 10px; background: var(--card); border-radius: 14px; padding: 10px 14px; border: 1px solid var(--border); }
         textarea { flex: 1; background: none; border: none; color: white; font-family: 'Inter', sans-serif; font-size: 14px; resize: none; outline: none; max-height: 200px; }
         ::placeholder { color: var(--placeholder); opacity: 0.8; }
         .send-btn { background: var(--accent); border: none; border-radius: 10px; cursor: pointer; padding: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: transform 0.1s; }
@@ -150,7 +154,6 @@
 </head>
 <body data-theme="dark">
 
-    <!-- SETTINGS MODAL -->
     <div class="modal-overlay" id="settingsModal" onclick="if(event.target==this) closeModal('settingsModal')">
         <div class="modal">
             <div class="modal-header"><h3>Settings</h3><button class="close-modal" onclick="closeModal('settingsModal')">×</button></div>
@@ -162,7 +165,6 @@
         </div>
     </div>
 
-    <!-- ABOUT AI MODAL -->
     <div class="modal-overlay" id="aboutModal" onclick="if(event.target==this) closeModal('aboutModal')">
         <div class="modal">
             <div class="modal-header"><h3>About AI</h3><button class="close-modal" onclick="closeModal('aboutModal')">×</button></div>
@@ -172,7 +174,6 @@
         </div>
     </div>
 
-    <!-- SIDEBAR PANEL -->
     <div class="sidebar" id="sidebar">
         <button class="new-chat-btn" onclick="createNewChat()"><strong>+</strong> New Chat</button>
         <div class="chat-list-title">Recent History</div>
@@ -190,7 +191,6 @@
         </div>
     </div>
 
-    <!-- MAIN DISPLAY CONTENT -->
     <div class="main-content">
         <div class="header">
             <button class="menu-toggle" onclick="toggleSidebar()">
@@ -343,7 +343,6 @@
                 
             } catch(e) { 
                 loadingRow.remove();
-                addMsg('ai', 'Connection error. Your backend service on Render is still offline or building. Check your Render Dashboard logs to ensure it status says "Live".'); 
             }
         }
 
