@@ -9,8 +9,9 @@ app.use(express.json());
 app.use(express.static('.')); 
 
 app.post('/chat', async (req, res) => {
-    const userMessage = req.body.message;
-    const chatHistory = req.body.history || []; // Get previous messages
+    // FIXED: Matching the exact keys sent by index.html
+    const userMessage = req.body.userMessage;
+    const chatHistory = req.body.chatHistory || []; 
     const selectedModel = "google/gemini-2.5-flash";
     const apiKey = process.env.OPENROUTER_API_KEY || "";
 
@@ -36,13 +37,12 @@ app.post('/chat', async (req, res) => {
             },
             body: JSON.stringify({
                 model: selectedModel,
-                messages: allMessages // Use the combined list here
+                messages: allMessages 
             })
         });
         const data = await response.json();
         res.json(data);
     } catch (error) {
-        // This will print the exact reason it's failing to your Render logs screen!
         console.error("--- OPENROUTER ERROR LOG ---");
         console.error(error);
         console.error("----------------------------");
