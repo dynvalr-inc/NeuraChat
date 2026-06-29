@@ -391,8 +391,18 @@
                 });
                 
                 loadingRow.remove(); 
-                if (data && data.choices && data.choices[0]) {
-                    const reply = data.choices[0].message.content;
+                
+                // Check all common response formats to make it completely bulletproof
+                let reply = "";
+                if (data && data.reply) {
+                    reply = data.reply;
+                } else if (data && data.response) {
+                    reply = data.response;
+                } else if (data && data.choices && data.choices[0] && data.choices[0].message) {
+                    reply = data.choices[0].message.content;
+                }
+                
+                if (reply) {
                     addMsg('ai', reply);
                     
                     history.push({role:'user', content:text}, {role:'assistant', content:reply});
@@ -402,6 +412,8 @@
                     addMsg('ai', "⚠️ Error: Received an empty or unexpected response structure from the server.");
                     console.log("Unexpected data structure:", data);
                 }
+                
+            }
                 
             } catch(e) { 
                 loadingRow.remove();
