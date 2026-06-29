@@ -42,7 +42,11 @@ app.post('/chat', async (req, res) => {
         const data = await response.json();
         res.json(data);
     } catch (error) {
+        // This will print the exact reason it's failing to your Render logs screen!
+        console.error("--- OPENROUTER ERROR LOG ---");
         console.error(error);
+        console.error("----------------------------");
+        
         res.status(500).send("Error connecting to API");
     }
 });
