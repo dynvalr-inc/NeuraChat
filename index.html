@@ -69,7 +69,6 @@
             outline: none; 
         }
         
-        /* The little red dustbin icon button */
         .delete-chat-btn { 
             background: none; 
             border: none; 
@@ -392,15 +391,22 @@
                 });
                 
                 loadingRow.remove(); 
-                const reply = data.choices[0].message.content;
-                addMsg('ai', reply);
-                
-                history.push({role:'user', content:text}, {role:'assistant', content:reply});
-                allChats[currentChatId].messages.push({ role: 'ai', content: reply });
-                saveToLocalStorage();
+                if (data && data.choices && data.choices[0]) {
+                    const reply = data.choices[0].message.content;
+                    addMsg('ai', reply);
+                    
+                    history.push({role:'user', content:text}, {role:'assistant', content:reply});
+                    allChats[currentChatId].messages.push({ role: 'ai', content: reply });
+                    saveToLocalStorage();
+                } else {
+                    addMsg('ai', "⚠️ Error: Received an empty or unexpected response structure from the server.");
+                    console.log("Unexpected data structure:", data);
+                }
                 
             } catch(e) { 
                 loadingRow.remove();
+                addMsg('ai', `❌ Connection Failed: ${e.message}. Please check your Render logs or OpenRouter balance.`);
+                console.error("Chat Error:", e);
             }
         }
 
