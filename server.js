@@ -11,7 +11,7 @@ app.use(express.static('.'));
 app.post('/chat', async (req, res) => {
     const userMessage = req.body.message;
     const chatHistory = req.body.history || []; // Get previous messages
-    const selectedModel = req.body.model || "perplexity/sonar";
+    const selectedModel = req.body.model || "perplexity/llama-3.1-sonar-small-128k-online";
     const apiKey = process.env.OPENROUTER_API_KEY || "";
 
     // 1. Define the AI's identity
