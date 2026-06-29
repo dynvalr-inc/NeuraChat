@@ -12,7 +12,7 @@ app.post('/chat', async (req, res) => {
     // FIXED: Matching the exact keys sent by index.html
     const userMessage = req.body.userMessage;
     const chatHistory = req.body.chatHistory || []; 
-    const selectedModel = "google/gemini-2.5-flash";
+    const selectedModel = "google/gemini-2.5-flash:free";
     const apiKey = process.env.OPENROUTER_API_KEY || "";
 
     // 1. Define the AI's identity
