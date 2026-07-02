@@ -6,28 +6,15 @@ const port = 3000;
 
 app.use(cors());
 app.use(express.json());
-app.use(express.static('.')); 
+app.use(express.static('.')); // This serves your HTML file
 
 app.post('/chat', async (req, res) => {
-    // FIXED: Matching the exact keys sent by index.html
-    const userMessage = req.body.userMessage;
-    const chatHistory = req.body.chatHistory || []; 
-    const selectedModel = "meta-llama/llama-3.3-70b-instruct:free";
-    const apiKey = process.env.OPENROUTER_API_KEY || "";
+    const userMessage = req.body.message;
+    const selectedModel = req.body.model || "google/gemini-2.0-flash-001";
+    // The server uses the secret key from .env
+    const apiKey = process.env.OPENROUTER_API_KEY;
 
-    // 1. Define the AI's identity
-    const systemInstruction = { 
-        role: "system", 
-        content: "Your name is NeuraChat. You are a helpful and friendly AI assistant created by Vipul D. Kadam. Always identify as NeuraChat." 
-    };
-
-    // 2. Combine: Identity + History + New User Message
-    const allMessages = [
-        systemInstruction,
-        ...chatHistory, 
-        { role: "user", content: userMessage }
-    ];
-
+    // This is where the server talks to OpenRouter for the user
     try {
         const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
             method: "POST",
@@ -35,18 +22,14 @@ app.post('/chat', async (req, res) => {
                 "Authorization": `Bearer ${apiKey}`,
                 "Content-Type": "application/json"
             },
-            body: JSON.stringify({
-                model: selectedModel,
-                messages: allMessages 
-            })
+	body: JSON.stringify({
+	    model: selectedModel,
+	    messages: [{ role: "user", content: userMessage }] 
+	})
         });
         const data = await response.json();
         res.json(data);
     } catch (error) {
-        console.error("--- OPENROUTER ERROR LOG ---");
-        console.error(error);
-        console.error("----------------------------");
-        
         res.status(500).send("Error connecting to API");
     }
 });
