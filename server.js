@@ -12,7 +12,7 @@ app.post('/chat', async (req, res) => {
     const userMessage = req.body.userMessage;
     const chatHistory = Array.isArray(req.body.chatHistory) ? req.body.chatHistory : []; 
     
-    // Model identifier (Ensure this model is currently listed as 'free' on OpenRouter)
+    // Model identifier
     const selectedModel = "openrouter/free"; 
     const apiKey = (process.env.OPENROUTER_API_KEY || "").trim();
 
@@ -42,7 +42,10 @@ app.post('/chat', async (req, res) => {
             return res.json({ reply: `⚠️ API Error: ${data.error?.message || 'Unknown error'}` });
         }
 
-        res.json(data);
+        // FIX: Extract only the content and send it as 'reply'
+        const aiReply = data.choices[0].message.content;
+        res.json({ reply: aiReply });
+
     } catch (error) {
         console.error("Server Error:", error);
         res.json({ reply: "⚠️ Server Error: Could not connect to API." });
