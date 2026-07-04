@@ -13,7 +13,8 @@ app.post('/chat', async (req, res) => {
     const chatHistory = Array.isArray(req.body.chatHistory) ? req.body.chatHistory : []; 
     
     // Use a model known to support tools
-    const selectedModel = "google/gemini-2.0-flash-lite"; 
+    // Use this specific model ID which is free and supports tools
+    const selectedModel = "meta-llama/llama-3.3-70b-instruct:free"; 
     const apiKey = (process.env.OPENROUTER_API_KEY || "").trim();
 
     const today = new Date().toLocaleDateString();
