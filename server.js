@@ -12,16 +12,14 @@ app.post('/chat', async (req, res) => {
     const userMessage = req.body.userMessage;
     const chatHistory = Array.isArray(req.body.chatHistory) ? req.body.chatHistory : []; 
     
-    // Model identifier
-    const selectedModel = "openrouter/free"; 
+    // Use a model known to support tools
+    const selectedModel = "google/gemini-2.0-flash-lite"; 
     const apiKey = (process.env.OPENROUTER_API_KEY || "").trim();
 
-    // Get today's date automatically
     const today = new Date().toLocaleDateString();
-
     const systemInstruction = { 
         role: "system", 
-        content: `Your name is NeuraChat. You are a helpful and friendly AI assistant created by Vipul D. Kadam. Always identify as NeuraChat. Today's date is ${today}.` 
+        content: `Your name is NeuraChat. You are a helpful AI assistant. Today's date is ${today}. You have access to the web search tool to answer questions about current events or facts you don't know.` 
     };
 
     const allMessages = [systemInstruction, ...chatHistory, { role: "user", content: userMessage }];
@@ -35,17 +33,20 @@ app.post('/chat', async (req, res) => {
                 "HTTP-Referer": "https://your-site-url.onrender.com", 
                 "X-Title": "NeuraChat" 
             },
-            body: JSON.stringify({ model: selectedModel, messages: allMessages })
+            body: JSON.stringify({ 
+                model: selectedModel, 
+                messages: allMessages,
+                // Add the Web Search Tool here!
+                tools: [{ type: "openrouter:web_search" }] 
+            })
         });
 
         const data = await response.json();
 
         if (!response.ok || data.error) {
-            console.error("OpenRouter Error:", data.error);
             return res.json({ reply: `⚠️ API Error: ${data.error?.message || 'Unknown error'}` });
         }
 
-        // Extracts only the message content
         const aiReply = data.choices[0].message.content;
         res.json({ reply: aiReply });
 
