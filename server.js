@@ -12,15 +12,14 @@ app.post('/chat', async (req, res) => {
     const userMessage = req.body.userMessage;
     const chatHistory = Array.isArray(req.body.chatHistory) ? req.body.chatHistory : []; 
     
-    // Use a model known to support tools
-    // Use this specific model ID which is free and supports tools
-    const selectedModel = "meta-llama/llama-3.3-70b-instruct:free"; 
+    // We are reverting to the generic free model to ensure stability
+    const selectedModel = "openrouter/free"; 
     const apiKey = (process.env.OPENROUTER_API_KEY || "").trim();
 
     const today = new Date().toLocaleDateString();
     const systemInstruction = { 
         role: "system", 
-        content: `Your name is NeuraChat. You are a helpful AI assistant. Today's date is ${today}. You have access to the web search tool to answer questions about current events or facts you don't know.` 
+        content: `Your name is NeuraChat. Today's date is ${today}.` 
     };
 
     const allMessages = [systemInstruction, ...chatHistory, { role: "user", content: userMessage }];
@@ -34,16 +33,13 @@ app.post('/chat', async (req, res) => {
                 "HTTP-Referer": "https://your-site-url.onrender.com", 
                 "X-Title": "NeuraChat" 
             },
-            body: JSON.stringify({ 
-                model: selectedModel, 
-                messages: allMessages,
-                // Add the Web Search Tool here! 
-            })
+            body: JSON.stringify({ model: selectedModel, messages: allMessages })
         });
 
         const data = await response.json();
 
         if (!response.ok || data.error) {
+            console.error("OpenRouter Error Details:", data); // This will show in Render Logs
             return res.json({ reply: `⚠️ API Error: ${data.error?.message || 'Unknown error'}` });
         }
 
