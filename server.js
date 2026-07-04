@@ -13,7 +13,7 @@ app.post('/chat', async (req, res) => {
     const chatHistory = Array.isArray(req.body.chatHistory) ? req.body.chatHistory : []; 
     
     // Model identifier (Ensure this model is currently listed as 'free' on OpenRouter)
-    const selectedModel = "meta-llama/llama-3.3-70b-instruct:free"; 
+    const selectedModel = "openrouter/free"; 
     const apiKey = (process.env.OPENROUTER_API_KEY || "").trim();
 
     const systemInstruction = { 
