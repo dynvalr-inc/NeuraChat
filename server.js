@@ -37,8 +37,7 @@ app.post('/chat', async (req, res) => {
             body: JSON.stringify({ 
                 model: selectedModel, 
                 messages: allMessages,
-                // Add the Web Search Tool here!
-                tools: [{ type: "openrouter:web_search" }] 
+                // Add the Web Search Tool here! 
             })
         });
 
