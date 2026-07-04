@@ -16,9 +16,12 @@ app.post('/chat', async (req, res) => {
     const selectedModel = "openrouter/free"; 
     const apiKey = (process.env.OPENROUTER_API_KEY || "").trim();
 
+    // Get today's date automatically
+    const today = new Date().toLocaleDateString();
+
     const systemInstruction = { 
         role: "system", 
-        content: "Your name is NeuraChat. You are a helpful and friendly AI assistant created by Vipul D. Kadam. Always identify as NeuraChat." 
+        content: `Your name is NeuraChat. You are a helpful and friendly AI assistant created by Vipul D. Kadam. Always identify as NeuraChat. Today's date is ${today}.` 
     };
 
     const allMessages = [systemInstruction, ...chatHistory, { role: "user", content: userMessage }];
@@ -42,7 +45,7 @@ app.post('/chat', async (req, res) => {
             return res.json({ reply: `⚠️ API Error: ${data.error?.message || 'Unknown error'}` });
         }
 
-        // FIX: Extract only the content and send it as 'reply'
+        // Extracts only the message content
         const aiReply = data.choices[0].message.content;
         res.json({ reply: aiReply });
 
