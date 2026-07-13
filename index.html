@@ -3,459 +3,81 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NeuraChat — BY DYNVALR</title>
-    
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/tokyo-night-dark.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
-
-    <script>
-    const $ = id => document.getElementById(id);
-    
-    let currentChatId = null;
-    let history = []; 
-    let allChats = JSON.parse(localStorage.getItem('neurachat_saved_sessions')) || {};
-
-    function openModal(id) { $(id).style.display = 'flex'; setTimeout(() => $(id).classList.add('active'), 10); }
-    function closeModal(id) { $(id).classList.remove('active'); setTimeout(() => $(id).style.display = 'none', 300); }
-    function toggleSidebar() { $('sidebar').classList.toggle('collapsed'); }
-
-    function toggleTheme() {
-        const t = document.body.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
-        document.body.setAttribute('data-theme', t);
-        $('themeBtn').innerHTML = t === 'light' ? '🌙 Dark Mode' : '☀️ Light Mode';
-        localStorage.setItem('neurachat_theme', t);
-    }
-
-    // UPDATED: Now accepts timestamp parameter, defaults to current time if none provided
-    function addMsg(role, text, timestamp = null) {
-        const welcomeNode = document.querySelector('.welcome');
-        if (welcomeNode) welcomeNode.remove();
-
-        const row = document.createElement('div');
-        row.className = 'msg-row ' + role;
-        
-        let clean = text.replace(/Vipul D\. Kadam|Vipul Kadam|Vipul/gi, "DYNVALR");
-        const avatar = role === 'user' ? '👤' : '<img src="logo.png" width="20" onerror="this.outerHTML=\'🤖\'">';
-        const content = role === 'ai' ? marked.parse(clean) : `<p>${clean}</p>`;
-        
-        // Use provided timestamp or current date if none exists
-        const displayTime = timestamp || new Date().toLocaleString();
-
-        row.innerHTML = `
-            <div class="av">${avatar}</div>
-            <div class="msg-body">
-                <div class="bubble">${content}</div>
-                <div class="chat-timestamp">${displayTime}</div>
-            </div>
-        `;
-        
-        $('chatInner').appendChild(row);
-        
-        // ... (Keep existing Code/Highlighting logic here) ...
-        if (role === 'ai') {
-            row.querySelectorAll('pre').forEach((preBlock) => {
-                const innerCode = preBlock.querySelector('code');
-                let detectedLang = "code";
-                if (innerCode) {
-                    const classList = Array.from(innerCode.classList);
-                    const langClass = classList.find(c => c.startsWith('language-'));
-                    if (langClass) detectedLang = langClass.replace('language-', '');
-                }
-                const langLabel = document.createElement('div');
-                langLabel.className = 'code-lang-label';
-                langLabel.innerText = detectedLang;
-                preBlock.appendChild(langLabel);
-
-                const btn = document.createElement('button');
-                btn.className = 'code-copy-btn';
-                btn.innerText = 'Copy';
-                btn.onclick = async () => {
-                    const codeString = innerCode ? innerCode.innerText : preBlock.innerText;
-                    await navigator.clipboard.writeText(codeString);
-                    btn.innerText = 'Copied!';
-                    setTimeout(() => btn.innerText = 'Copy', 2000);
-                };
-                preBlock.appendChild(btn);
-                if (innerCode) hljs.highlightElement(innerCode);
-            });
-        }
-        
-        $('chatScroll').scrollTop = $('chatScroll').scrollHeight;
-        return row;
-    }
-
-    async function send() {
-        const input = $('msgInput');
-        const text = input.value.trim();
-        if(!text) return;
-        input.value = '';
-        input.style.height = 'auto';
-
-        const timestamp = new Date().toLocaleString(); // Create timestamp
-
-        if (!currentChatId) {
-            currentChatId = 'chat_' + Date.now();
-            allChats[currentChatId] = { title: text.substring(0, 24) + '...', messages: [] };
-        }
-
-        // Add to UI and Save with timestamp
-        addMsg('user', text, timestamp);
-        allChats[currentChatId].messages.push({ role: 'user', content: text, timestamp: timestamp });
-        saveToLocalStorage();
-
-        // ... (Show loading state) ...
-        const loadingRow = document.createElement('div');
-        loadingRow.className = 'msg-row ai';
-        loadingRow.innerHTML = `<div class="av"><img src="logo.png" width="20" onerror="this.outerHTML=\'🤖\'"></div><div class="bubble typing"><span></span><span></span><span></span></div>`;
-        $('chatInner').appendChild(loadingRow);
-
-        try {
-            const data = await fetchWithRetry('https://neurachat-xxy2.onrender.com/chat', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ userMessage: text, chatHistory: history })
-            });
-            
-            loadingRow.remove(); 
-            
-            let reply = data.reply || data.response || (data.choices && data.choices[0].message.content) || "No response.";
-            const replyTimestamp = new Date().toLocaleString(); // Create reply timestamp
-
-            addMsg('ai', reply, replyTimestamp);
-            
-            history.push({role:'user', content:text}, {role:'assistant', content:reply});
-            allChats[currentChatId].messages.push({ role: 'ai', content: reply, timestamp: replyTimestamp });
-            saveToLocalStorage();
-                
-        } catch(e) { 
-            loadingRow.remove();
-            addMsg('ai', `❌ Connection Failed: ${e.message}`);
-        }
-    }
-
-    // UPDATED: Now loads the stored timestamp
-    function loadSavedChat(id) {
-        currentChatId = id;
-        $('chatInner').innerHTML = '';
-        history = [];
-        
-        const session = allChats[id];
-        session.messages.forEach(msg => {
-            // Pass the saved timestamp back to addMsg
-            addMsg(msg.role, msg.content, msg.timestamp); 
-            if(msg.role === 'user') history.push({role: 'user', content: msg.content});
-            if(msg.role === 'ai') history.push({role: 'assistant', content: msg.content});
-        });
-        renderSidebarHistory();
-    }
-    
-    // ... (Keep existing fetchWithRetry, saveToLocalStorage, renderSidebarHistory, etc.) ...
-</script>
+    <title>NeuraChat</title>
+    <style>
+        /* CSS INCLUDED DIRECTLY TO PREVENT LOADING ISSUES */
+        body { font-family: sans-serif; background: #1a1a24; color: #fff; margin: 0; display: flex; height: 100vh; }
+        .sidebar { width: 260px; background: #12121a; padding: 20px; border-right: 1px solid #333; }
+        .main-content { flex: 1; display: flex; flex-direction: column; }
+        .chat-scroll { flex: 1; overflow-y: auto; padding: 20px; }
+        .input-area { padding: 20px; background: #252535; }
+        .msg-row { margin-bottom: 15px; display: flex; flex-direction: column; }
+        .bubble { background: #34344a; padding: 10px; border-radius: 10px; display: inline-block; max-width: 80%; }
+        .timestamp { font-size: 10px; color: #888; margin-top: 4px; }
+        .user { align-items: flex-end; }
+        .ai { align-items: flex-start; }
+    </style>
 </head>
-<body data-theme="dark">
-
-    <div class="modal-overlay" id="settingsModal" onclick="if(event.target==this) closeModal('settingsModal')">
-        <div class="modal">
-            <div class="modal-header"><h3>Settings</h3><button class="close-modal" onclick="closeModal('settingsModal')">×</button></div>
-            <div style="display:flex; justify-content:space-between; align-items:center;">
-                <span>Theme Mode</span>
-                <button onclick="toggleTheme()" id="themeBtn" style="padding:8px 12px; cursor:pointer; border-radius:8px; border:none; background:var(--accent); color:white; font-weight:600;">☀️ Light Mode</button>
-            </div>
-            <p style="font-size: 10px; color: var(--muted); margin-top: 20px; text-align: center; opacity: 0.6;">NeuraChat v2.5 by DYNVALR</p>
-        </div>
+<body>
+    <div class="sidebar">
+        <button onclick="location.reload()">+ New Chat</button>
+        <div id="history"></div>
     </div>
-
-    <div class="modal-overlay" id="aboutModal" onclick="if(event.target==this) closeModal('aboutModal')">
-        <div class="modal">
-            <div class="modal-header"><h3>About AI</h3><button class="close-modal" onclick="closeModal('aboutModal')">×</button></div>
-            <p><strong>NeuraChat BY DYNVALR</strong></p>
-            <p style="margin-top:10px; font-size:14px; line-height:1.5;">I am an advanced custom-built AI assistant dashboard, optimized to deliver rich, contextual responses securely.</p>
-            <p style="margin-top:15px; font-size:12px; color:var(--muted); font-weight:600;">Designed & Engineered by DYNVALR.</p>
-        </div>
-    </div>
-
-    <div class="sidebar" id="sidebar">
-        <button class="new-chat-btn" onclick="createNewChat()"><strong>+</strong> New Chat</button>
-        <div class="chat-list-title">Recent History</div>
-        <div class="chat-history" id="chatHistory"></div>
-        
-        <div class="sidebar-footer">
-            <button class="footer-btn" onclick="openModal('aboutModal')">
-                <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M11 17h2v-6h-2v6zm1-15C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zM11 9h2V7h-2v2z"/></svg>
-                About AI
-            </button>
-            <button class="footer-btn" onclick="openModal('settingsModal')">
-                <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"></path></svg>
-                Settings
-            </button>
-        </div>
-    </div>
-
     <div class="main-content">
-        <div class="header">
-            <button class="menu-toggle" onclick="toggleSidebar()">
-                <svg viewBox="0 0 24 24" width="24" height="24" fill="var(--muted)"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"></path></svg>
-            </button>
-            <div class="logo-mark"><img src="logo.png" alt="N" onerror="this.style.display='none'"></div>
-            <span class="brand">Neura<span>Chat</span> <small style="font-size:10px; opacity:0.6;">by DYNVALR</small></span>
-        </div>
-
-        <div class="chat-scroll" id="chatScroll">
-            <div class="chat-inner" id="chatInner"></div>
-        </div>
-
+        <div class="chat-scroll" id="chatInner"></div>
         <div class="input-area">
-            <div class="input-box">
-                <textarea id="msgInput" placeholder="Type a message..." rows="1" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();send();}" oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'"></textarea>
-                <button class="send-btn" onclick="send()">
-                    <svg viewBox="0 0 24 24" width="18" height="18" fill="white"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"></path></svg>
-                </button>
-            </div>
-            <p style="text-align: center; font-size: 11px; margin-top: 8px; color: var(--muted); font-weight: bold;">© 2026 DYNVALR | All Rights Reserved</p>
+            <input type="text" id="msgInput" placeholder="Type a message..." style="width: 80%;">
+            <button onclick="send()">Send</button>
         </div>
     </div>
 
     <script>
-        const $ = id => document.getElementById(id);
-        
-        let currentChatId = null;
-        let history = []; 
-        let allChats = JSON.parse(localStorage.getItem('neurachat_saved_sessions')) || {};
+        // Persistence Logic
+        let allChats = JSON.parse(localStorage.getItem('neurachat_sessions')) || {};
+        let currentId = 'chat_' + Date.now();
 
-        function openModal(id) { $(id).style.display = 'flex'; setTimeout(() => $(id).classList.add('active'), 10); }
-        function closeModal(id) { $(id).classList.remove('active'); setTimeout(() => $(id).style.display = 'none', 300); }
-        function toggleSidebar() { $('sidebar').classList.toggle('collapsed'); }
-
-        function toggleTheme() {
-            const t = document.body.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
-            document.body.setAttribute('data-theme', t);
-            $('themeBtn').innerHTML = t === 'light' ? '🌙 Dark Mode' : '☀️ Light Mode';
-            localStorage.setItem('neurachat_theme', t);
-        }
-
-        function addMsg(role, text, timestamp = null) {
-            const welcomeNode = document.querySelector('.welcome');
-            if (welcomeNode) welcomeNode.remove();
-
+        function addMsg(role, text, time) {
+            const container = document.getElementById('chatInner');
             const row = document.createElement('div');
             row.className = 'msg-row ' + role;
-            
-            let clean = text.replace(/Vipul D\. Kadam|Vipul Kadam|Vipul/gi, "DYNVALR");
-            const avatar = role === 'user' ? '👤' : '<img src="logo.png" width="20" onerror="this.outerHTML=\'🤖\'">';
-            const content = role === 'ai' ? marked.parse(clean) : `<p>${clean}</p>`;
-            
-            // If timestamp is not provided, we show nothing (or you can set a default here)
-            const timestampHtml = timestamp ? `<div class="chat-timestamp">${timestamp}</div>` : '';
-
-            row.innerHTML = `
-                <div class="av">${avatar}</div>
-                <div class="msg-body">
-                    <div class="bubble">${content}</div>
-                    ${timestampHtml}
-                </div>
-            `;
-            
-            $('chatInner').appendChild(row);
-            
-            if (role === 'ai') {
-                row.querySelectorAll('pre').forEach((preBlock) => {
-                    const innerCode = preBlock.querySelector('code');
-                    
-                    let detectedLang = "code";
-                    if (innerCode) {
-                        const classList = Array.from(innerCode.classList);
-                        const langClass = classList.find(c => c.startsWith('language-'));
-                        if (langClass) {
-                            detectedLang = langClass.replace('language-', '');
-                        }
-                    }
-                    const langLabel = document.createElement('div');
-                    langLabel.className = 'code-lang-label';
-                    langLabel.innerText = detectedLang;
-                    preBlock.appendChild(langLabel);
-
-                    const btn = document.createElement('button');
-                    btn.className = 'code-copy-btn';
-                    btn.innerText = 'Copy';
-                    
-                    btn.onclick = async () => {
-                        const codeString = innerCode ? innerCode.innerText : preBlock.innerText;
-                        try {
-                            await navigator.clipboard.writeText(codeString);
-                            btn.innerText = 'Copied!';
-                            btn.classList.add('copied');
-                            setTimeout(() => {
-                                btn.innerText = 'Copy';
-                                btn.classList.remove('copied');
-                            }, 2000);
-                        } catch (err) { console.error(err); }
-                    };
-                    preBlock.appendChild(btn);
-                    
-                    if (innerCode) hljs.highlightElement(innerCode);
-                });
-            }
-            
-            $('chatScroll').scrollTop = $('chatScroll').scrollHeight;
-            return row;
-        }
-
-        async function fetchWithRetry(url, options, retries = 3, delay = 4000) {
-            for (let i = 0; i < retries; i++) {
-                try {
-                    const res = await fetch(url, options);
-                    if (res.ok) return await res.json();
-                } catch (err) {
-                    if (i === retries - 1) throw err;
-                }
-                await new Promise(resolve => setTimeout(resolve, delay));
-            }
+            row.innerHTML = `<div class="bubble">${text}</div><div class="timestamp">${time}</div>`;
+            container.appendChild(row);
+            container.scrollTop = container.scrollHeight;
         }
 
         async function send() {
-            const input = $('msgInput');
+            const input = document.getElementById('msgInput');
             const text = input.value.trim();
             if(!text) return;
+            
+            const now = new Date().toLocaleString(); // Full Date & Time
+            
+            // UI Update
+            addMsg('user', text, now);
+            
+            // Save to Local Storage
+            if(!allChats[currentId]) allChats[currentId] = [];
+            allChats[currentId].push({ role: 'user', text, time: now });
+            localStorage.setItem('neurachat_sessions', JSON.stringify(allChats));
+            
             input.value = '';
-            input.style.height = 'auto';
-
-            if (!currentChatId) {
-                currentChatId = 'chat_' + Date.now();
-                allChats[currentChatId] = { title: text.substring(0, 24) + '...', messages: [] };
-            }
-
-            addMsg('user', text);
-            allChats[currentChatId].messages.push({ role: 'user', content: text });
-            saveToLocalStorage();
-
-            const loadingRow = document.createElement('div');
-            loadingRow.className = 'msg-row ai';
-            loadingRow.innerHTML = `<div class="av"><img src="logo.png" width="20" onerror="this.outerHTML=\'🤖\'"></div><div class="bubble typing"><span id="loadText">NeuraChat is waking up backend...</span><span></span><span></span><span></span></div>`;
-            $('chatInner').appendChild(loadingRow);
-            $('chatScroll').scrollTop = $('chatScroll').scrollHeight;
 
             try {
-                const data = await fetchWithRetry('https://neurachat-xxy2.onrender.com/chat', {
+                const res = await fetch('https://neurachat-xxy2.onrender.com/chat', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ userMessage: text, chatHistory: history })
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ userMessage: text })
                 });
+                const data = await res.json();
+                const reply = data.reply || "Error: No response";
                 
-                loadingRow.remove(); 
-                
-                let reply = "";
-                // Logic update: If backend doesn't send date, we create a full Date+Time string here
-                let timestamp = data.timestamp || new Date().toLocaleString(); 
-
-                if (data && data.reply) {
-                    reply = data.reply;
-                } else if (data && data.response) {
-                    reply = data.response;
-                } else if (data && data.choices && data.choices[0] && data.choices[0].message) {
-                    reply = data.choices[0].message.content;
-                }
-                
-                if (reply) {
-                    addMsg('ai', reply, timestamp);
-                    
-                    history.push({role:'user', content:text}, {role:'assistant', content:reply});
-                    allChats[currentChatId].messages.push({ role: 'ai', content: reply });
-                    saveToLocalStorage();
-                } else {
-                    addMsg('ai', "⚠️ Error: Received an empty or unexpected response structure from the server.");
-                    console.log("Unexpected data structure:", data);
-                }
-                
-            } catch(e) { 
-                loadingRow.remove();
-                addMsg('ai', `❌ Connection Failed: ${e.message}. Please check your Render logs or OpenRouter balance.`);
-                console.error("Chat Error:", e);
+                addMsg('ai', reply, new Date().toLocaleString());
+                allChats[currentId].push({ role: 'ai', text: reply, time: new Date().toLocaleString() });
+                localStorage.setItem('neurachat_sessions', JSON.stringify(allChats));
+            } catch(e) {
+                addMsg('ai', "Error connecting to server.", new Date().toLocaleString());
             }
         }
-
-        function saveToLocalStorage() {
-            localStorage.setItem('neurachat_saved_sessions', JSON.stringify(allChats));
-            renderSidebarHistory();
-        }
-
-        function renderSidebarHistory() {
-            const historyContainer = $('chatHistory');
-            historyContainer.innerHTML = '';
-            
-            Object.keys(allChats).sort((a,b) => b.split('_')[1] - a.split('_')[1]).forEach(id => {
-                const itemWrapper = document.createElement('div');
-                itemWrapper.className = 'chat-history-item' + (id === currentChatId ? ' active' : '');
-                
-                const titleBtn = document.createElement('button');
-                titleBtn.className = 'chat-item-btn';
-                titleBtn.innerText = allChats[id].title;
-                titleBtn.onclick = () => loadSavedChat(id);
-                
-                const deleteBtn = document.createElement('button');
-                deleteBtn.className = 'delete-chat-btn';
-                deleteBtn.setAttribute('title', 'Delete chat');
-                deleteBtn.innerHTML = `<svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>`;
-                deleteBtn.onclick = (e) => deleteChat(id, e);
-                
-                itemWrapper.appendChild(titleBtn);
-                itemWrapper.appendChild(deleteBtn);
-                historyContainer.appendChild(itemWrapper);
-            });
-        }
-
-        function deleteChat(id, event) {
-            event.stopPropagation();
-            if (confirm("Are you sure you want to delete this chat history?")) {
-                delete allChats[id];
-                if (currentChatId === id) {
-                    createNewChat();
-                } else {
-                    saveToLocalStorage();
-                }
-            }
-        }
-
-        function loadSavedChat(id) {
-            currentChatId = id;
-            $('chatInner').innerHTML = '';
-            history = [];
-            
-            const session = allChats[id];
-            session.messages.forEach(msg => {
-                // Note: saved sessions might not have timestamps stored, so we just show the message
-                addMsg(msg.role, msg.content);
-                if(msg.role === 'user') history.push({role: 'user', content: msg.content});
-                if(msg.role === 'ai') history.push({role: 'assistant', content: msg.content});
-            });
-            renderSidebarHistory();
-        }
-
-        function createNewChat() { 
-            currentChatId = null;
-            history = []; 
-            $('chatInner').innerHTML = ''; 
-            showWelcome(); 
-            renderSidebarHistory();
-        }
-
-        function showWelcome() { 
-            $('chatInner').innerHTML = `
-                <div class="welcome">
-                    <div class="welcome-logo-container">
-                        <img src="logo.png" alt="NeuraChat Logo" onerror="this.style.display='none'; this.parentElement.innerText='🤖'">
-                    </div>
-                    <h2>Welcome to NeuraChat</h2>
-                    <p>Ask me anything. Built to answer creatively and securely.</p>
-                </div>`; 
-        }
-
-        const savedTheme = localStorage.getItem('neurachat_theme') || 'dark';
-        document.body.setAttribute('data-theme', savedTheme);
-        $('themeBtn').innerHTML = savedTheme === 'light' ? '🌙 Dark Mode' : '☀️ Light Mode';
-        
-        showWelcome();
-        renderSidebarHistory();
     </script>
 </body>
 </html>
