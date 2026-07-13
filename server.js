@@ -38,18 +38,15 @@ app.post('/chat', async (req, res) => {
         const data = await response.json();
 
         if (!response.ok || data.error) {
-            console.error("OpenRouter Error Details:", data);
             return res.json({ reply: `⚠️ API Error: ${data.error?.message || 'Unknown error'}` });
         }
 
         const aiReply = data.choices[0].message.content;
-        
-        // --- ADDED: Include the timestamp in the JSON response ---
         const timestamp = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        
         res.json({ reply: aiReply, timestamp: timestamp });
 
     } catch (error) {
-        console.error("Server Error:", error);
         res.json({ reply: "⚠️ Server Error: Could not connect to API." });
     }
 });
