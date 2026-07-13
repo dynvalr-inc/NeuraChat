@@ -31,6 +31,13 @@
 
         body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); height: 100dvh; display: flex; overflow: hidden; transition: 0.3s ease; }
 
+        .chat-timestamp {
+            font-size: 10px;
+            color: grey;
+            text-align: right;
+            margin-top: 5px;
+            display: block; /* Ensures it starts on a new line */
+        }
         /* SIDEBAR */
         .sidebar { width: 260px; background: var(--sidebar); border-right: 1px solid var(--border); display: flex; flex-direction: column; padding: 15px; flex-shrink: 0; transition: 0.3s ease; }
         .sidebar.collapsed { margin-left: -260px; }
