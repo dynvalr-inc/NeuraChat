@@ -312,6 +312,7 @@
             const avatar = role === 'user' ? '👤' : '<img src="logo.png" width="20" onerror="this.outerHTML=\'🤖\'">';
             const content = role === 'ai' ? marked.parse(clean) : `<p>${clean}</p>`;
             
+            // If timestamp is not provided, we show nothing (or you can set a default here)
             const timestampHtml = timestamp ? `<div class="chat-timestamp">${timestamp}</div>` : '';
 
             row.innerHTML = `
@@ -411,7 +412,8 @@
                 loadingRow.remove(); 
                 
                 let reply = "";
-                let timestamp = data.timestamp || ""; // Capture the timestamp from backend
+                // Logic update: If backend doesn't send date, we create a full Date+Time string here
+                let timestamp = data.timestamp || new Date().toLocaleString(); 
 
                 if (data && data.reply) {
                     reply = data.reply;
@@ -488,6 +490,7 @@
             
             const session = allChats[id];
             session.messages.forEach(msg => {
+                // Note: saved sessions might not have timestamps stored, so we just show the message
                 addMsg(msg.role, msg.content);
                 if(msg.role === 'user') history.push({role: 'user', content: msg.content});
                 if(msg.role === 'ai') history.push({role: 'assistant', content: msg.content});
