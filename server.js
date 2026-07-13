@@ -12,7 +12,6 @@ app.post('/chat', async (req, res) => {
     const userMessage = req.body.userMessage;
     const chatHistory = Array.isArray(req.body.chatHistory) ? req.body.chatHistory : []; 
     
-    // We are reverting to the generic free model to ensure stability
     const selectedModel = "openrouter/free"; 
     const apiKey = (process.env.OPENROUTER_API_KEY || "").trim();
 
@@ -39,12 +38,15 @@ app.post('/chat', async (req, res) => {
         const data = await response.json();
 
         if (!response.ok || data.error) {
-            console.error("OpenRouter Error Details:", data); // This will show in Render Logs
+            console.error("OpenRouter Error Details:", data);
             return res.json({ reply: `⚠️ API Error: ${data.error?.message || 'Unknown error'}` });
         }
 
         const aiReply = data.choices[0].message.content;
-        res.json({ reply: aiReply });
+        
+        // --- ADDED: Include the timestamp in the JSON response ---
+        const timestamp = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        res.json({ reply: aiReply, timestamp: timestamp });
 
     } catch (error) {
         console.error("Server Error:", error);
