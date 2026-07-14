@@ -15,6 +15,7 @@
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
         ::selection { background: #4B0082; color: white; }
 
+        /* THEME 1: LIGHT MODE */
         :root {
             --bg: #f7f7f8; --surface: #fdbcff; --sidebar: #f3a6ff; --card: #c072ff;
             --border: rgba(255,255,255,0.25); --text: #0d0d10; --muted: #2e004d;
@@ -22,11 +23,20 @@
             --placeholder: rgba(255, 255, 255, 0.9); --modal-bg: rgba(255, 255, 255, 0.95);
         }
 
+        /* THEME 2: DARK MODE */
         [data-theme="dark"] {
             --bg: #0d0d12; --surface: #1a1a24; --sidebar: #12121a; --card: #252535;
             --border: rgba(255,255,255,0.08); --text: #ececf1; --muted: #9a9ab0;
             --accent: #bb66ff; --user-bg: #34344a; --ai-bg: #1e1e2e;
             --placeholder: rgba(255, 255, 255, 0.5); --modal-bg: #1e1e2e;
+        }
+
+        /* THEME 3: MIDNIGHT BLACK MODE */
+        [data-theme="midnight"] {
+            --bg: #000000; --surface: #0a0a0f; --sidebar: #050508; --card: #12121a;
+            --border: rgba(255,255,255,0.12); --text: #f3f3f6; --muted: #828299;
+            --accent: #9d33ff; --user-bg: #1f1f2e; --ai-bg: #0d0d12;
+            --placeholder: rgba(255, 255, 255, 0.4); --modal-bg: #0a0a0f;
         }
 
         body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); height: 100dvh; display: flex; overflow: hidden; transition: 0.3s ease; }
@@ -131,6 +141,23 @@
         .msg-row.user .bubble { background: var(--user-bg); border-radius: 16px 16px 4px 16px; }
         .msg-row.ai .bubble { background: var(--ai-bg); border-radius: 16px 16px 16px 4px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); min-width: 0; width: 100%; }
 
+        /* THE DATE DISPLAY BADGE */
+        .chat-date-stamp {
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            color: var(--muted);
+            opacity: 0.7;
+            margin-bottom: 6px;
+            display: block;
+            border-bottom: 1px dashed rgba(0,0,0,0.1);
+            padding-bottom: 4px;
+        }
+        [data-theme="dark"] .chat-date-stamp, [data-theme="midnight"] .chat-date-stamp {
+            border-color: rgba(255,255,255,0.1);
+        }
+
         /* USER BUBBLE INTERACTION BUTTONS */
         .user-actions-container {
             display: flex;
@@ -210,7 +237,7 @@
             <div class="modal-header"><h3>Settings</h3><button class="close-modal" onclick="closeModal('settingsModal')">×</button></div>
             <div style="display:flex; justify-content:space-between; align-items:center;">
                 <span>Theme Mode</span>
-                <button onclick="toggleTheme()" id="themeBtn" style="padding:8px 12px; cursor:pointer; border-radius:8px; border:none; background:var(--accent); color:white; font-weight:600;">☀️ Light Mode</button>
+                <button onclick="toggleTheme()" id="themeBtn" style="padding:8px 12px; cursor:pointer; border-radius:8px; border:none; background:var(--accent); color:white; font-weight:600;">🌙 Dark Mode</button>
             </div>
             <p style="font-size: 10px; color: var(--muted); margin-top: 20px; text-align: center; opacity: 0.6;">NeuraChat v2.5 by DYNVALR</p>
         </div>
@@ -277,15 +304,27 @@
         function closeModal(id) { $(id).classList.remove('active'); setTimeout(() => $(id).style.display = 'none', 300); }
         function toggleSidebar() { $('sidebar').classList.toggle('collapsed'); }
 
+        // Expanded 3-Theme Switch Logic (Light -> Dark -> Midnight)
         function toggleTheme() {
-            const t = document.body.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
-            document.body.setAttribute('data-theme', t);
-            $('themeBtn').innerHTML = t === 'light' ? '🌙 Dark Mode' : '☀️ Light Mode';
-            localStorage.setItem('neurachat_theme', t);
+            const currentTheme = document.body.getAttribute('data-theme') || 'dark';
+            let nextTheme = 'light';
+            let buttonLabel = '☀️ Light Mode';
+
+            if (currentTheme === 'light') {
+                nextTheme = 'dark';
+                buttonLabel = '🌙 Dark Mode';
+            } else if (currentTheme === 'dark') {
+                nextTheme = 'midnight';
+                buttonLabel = '🌌 Midnight Mode';
+            }
+
+            document.body.setAttribute('data-theme', nextTheme);
+            $('themeBtn').innerHTML = buttonLabel;
+            localStorage.setItem('neurachat_theme', nextTheme);
         }
 
-        // Add Message Node Element Builder (Includes integrated Edit and Copy engines)
-        function addMsg(role, text) {
+        // Add Message Node Element Builder (Includes integrated Edit, Copy, and Date stamping)
+        function addMsg(role, text, isFirstReply = false) {
             const welcomeNode = document.querySelector('.welcome');
             if (welcomeNode) welcomeNode.remove();
 
@@ -294,9 +333,21 @@
             
             let clean = text.replace(/Vipul D\. Kadam|Vipul Kadam|Vipul/gi, "DYNVALR");
             const avatar = role === 'user' ? '👤' : '<img src="logo.png" width="20" onerror="this.outerHTML=\'🤖\'">';
-            const content = role === 'ai' ? marked.parse(clean) : `<p class="user-text-p">${clean}</p>`;
             
-            row.innerHTML = `<div class="av">${avatar}</div><div class="bubble">${content}</div>`;
+            // Build content container
+            let contentHTML = '';
+            if (role === 'ai') {
+                // If it's the very first AI reply, prepend the formatted date stamp
+                if (isFirstReply) {
+                    const todayStr = new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+                    contentHTML += `<span class="chat-date-stamp">📅 ${todayStr}</span>`;
+                }
+                contentHTML += marked.parse(clean);
+            } else {
+                contentHTML += `<p class="user-text-p">${clean}</p>`;
+            }
+            
+            row.innerHTML = `<div class="av">${avatar}</div><div class="bubble">${contentHTML}</div>`;
             
             // Build Context Action Layout Buttons for User Bubbles
             if (role === 'user') {
@@ -442,7 +493,7 @@
 
             const loadingRow = document.createElement('div');
             loadingRow.className = 'msg-row ai';
-            loadingRow.innerHTML = `<div class="av"><img src="logo.png" width="20" onerror="this.outerHTML=\'🤖\'"></div><div class="bubble typing"><span id="loadText">NeuraChat is waking up backend...</span><span></span><span></span><span></span></div>`;
+            loadingRow.innerHTML = `<div class="av"><img src="logo.png" width="20" onerror="this.outerHTML='🤖'"></div><div class="bubble"><div class="typing-container" style="display: flex; align-items: center; gap: 8px; white-space: nowrap;"><span id="loadText" style="font-size: 13px; font-style: italic; opacity: 0.8;">NeuraChat is waking up backend...</span><span class="typing" style="display: flex; gap: 3px; align-items: center;"><span></span><span></span><span></span></span></div></div>`;
             innerContainer.appendChild(loadingRow);
             $('chatScroll').scrollTop = $('chatScroll').scrollHeight;
 
@@ -461,7 +512,10 @@
                 else if (data && data.choices && data.choices[0] && data.choices[0].message) reply = data.choices[0].message.content;
                 
                 if (reply) {
-                    addMsg('ai', reply);
+                    // Check if this is the first AI response in history
+                    const isFirstAI = (history.length === 0);
+                    
+                    addMsg('ai', reply, isFirstAI);
                     history.push({role:'user', content: newText}, {role:'assistant', content:reply});
                     allChats[currentChatId].messages.push({ role: 'ai', content: reply });
                     saveToLocalStorage();
@@ -482,6 +536,9 @@
             input.value = '';
             input.style.height = 'auto';
 
+            // Determine if this is the very first message ever in this session
+            const isFirstAI = (history.length === 0);
+
             if (!currentChatId) {
                 currentChatId = 'chat_' + Date.now();
                 allChats[currentChatId] = { title: text.substring(0, 24) + '...', messages: [] };
@@ -490,13 +547,12 @@
             addMsg('user', text);
             allChats[currentChatId].messages.push({ role: 'user', content: text });
             
-            // Sync with backend array format
             history.push({ role: 'user', content: text });
             saveToLocalStorage();
 
             const loadingRow = document.createElement('div');
             loadingRow.className = 'msg-row ai';
-            loadingRow.innerHTML = `<div class="av"><img src="logo.png" width="20" onerror="this.outerHTML=\'🤖\'"></div><div class="bubble"><div class="typing-container" style="display: flex; align-items: center; gap: 8px; white-space: nowrap;"><span id="loadText" style="font-size: 13px; font-style: italic; opacity: 0.8;">NeuraChat is waking up backend...</span><span class="typing" style="display: flex; gap: 3px; align-items: center;"><span></span><span></span><span></span></span></div></div>`;
+            loadingRow.innerHTML = `<div class="av"><img src="logo.png" width="20" onerror="this.outerHTML='🤖'"></div><div class="bubble"><div class="typing-container" style="display: flex; align-items: center; gap: 8px; white-space: nowrap;"><span id="loadText" style="font-size: 13px; font-style: italic; opacity: 0.8;">NeuraChat is waking up backend...</span><span class="typing" style="display: flex; gap: 3px; align-items: center;"><span></span><span></span><span></span></span></div></div>`;
             $('chatInner').appendChild(loadingRow);
             $('chatScroll').scrollTop = $('chatScroll').scrollHeight;
 
@@ -515,7 +571,7 @@
                 else if (data && data.choices && data.choices[0] && data.choices[0].message) reply = data.choices[0].message.content;
                 
                 if (reply) {
-                    addMsg('ai', reply);
+                    addMsg('ai', reply, isFirstAI);
                     history.push({role:'assistant', content:reply});
                     allChats[currentChatId].messages.push({ role: 'ai', content: reply });
                     saveToLocalStorage();
@@ -568,8 +624,14 @@
             
             const chat = allChats[id];
             if (chat && chat.messages) {
+                // Keep track of AI messages rendered to stamp only the first one
+                let aiCount = 0;
                 chat.messages.forEach(msg => {
-                    addMsg(msg.role, msg.content);
+                    const isFirstAI = (msg.role === 'ai' || msg.role === 'assistant') && aiCount === 0;
+                    if (msg.role === 'ai' || msg.role === 'assistant') aiCount++;
+                    
+                    addMsg(msg.role === 'assistant' ? 'ai' : msg.role, msg.content, isFirstAI);
+                    
                     if (msg.role === 'user') {
                         history.push({ role: 'user', content: msg.content });
                     } else {
@@ -617,7 +679,12 @@
         window.onload = () => {
             const savedTheme = localStorage.getItem('neurachat_theme') || 'dark';
             document.body.setAttribute('data-theme', savedTheme);
-            $('themeBtn').innerHTML = savedTheme === 'light' ? '🌙 Dark Mode' : '☀️ Light Mode';
+            
+            // Set the proper settings panel button label on startup
+            let initialLabel = '🌙 Dark Mode';
+            if (savedTheme === 'light') initialLabel = '☀️ Light Mode';
+            if (savedTheme === 'midnight') initialLabel = '🌌 Midnight Mode';
+            $('themeBtn').innerHTML = initialLabel;
             
             createNewChat();
         };
