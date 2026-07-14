@@ -496,7 +496,7 @@
 
             const loadingRow = document.createElement('div');
             loadingRow.className = 'msg-row ai';
-            loadingRow.innerHTML = `<div class="av"><img src="logo.png" width="20" onerror="this.outerHTML=\'🤖\'"></div><div class="bubble typing"><span id="loadText">NeuraChat is waking up backend...</span><span></span><span></span><span></span></div>`;
+            loadingRow.innerHTML = `<div class="av"><img src="logo.png" width="20" onerror="this.outerHTML=\'🤖\'"></div><div class="bubble"><div class="typing-container" style="display: flex; align-items: center; gap: 8px; white-space: nowrap;"><span id="loadText" style="font-size: 13px; font-style: italic; opacity: 0.8;">NeuraChat is waking up backend...</span><span class="typing" style="display: flex; gap: 3px; align-items: center;"><span></span><span></span><span></span></span></div></div>`;
             $('chatInner').appendChild(loadingRow);
             $('chatScroll').scrollTop = $('chatScroll').scrollHeight;
 
