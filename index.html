@@ -102,14 +102,20 @@
         .sidebar-footer { margin-top: auto; padding-top: 15px; border-top: 1px solid var(--border); display: flex; flex-direction: column; gap: 8px; }
         .footer-btn { width: 100%; padding: 10px 12px; background: none; border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-size: 13px; cursor: pointer; display: flex; align-items: center; gap: 10px; transition: 0.2s; }
         .footer-btn:hover { background: rgba(255,255,255,0.1); border-color: var(--accent); }
+        .danger-btn:hover { background: rgba(255, 77, 77, 0.15); border-color: #ff4d4d; color: #ff4d4d; }
 
-        /* MODALS */
+        /* MODALS & INPUTS */
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); display: none; align-items: center; justify-content: center; z-index: 1000; opacity: 0; transition: opacity 0.3s ease; }
         .modal-overlay.active { display: flex; opacity: 1; }
-        .modal { background: var(--modal-bg); padding: 25px; border-radius: 16px; width: 340px; box-shadow: 0 20px 40px rgba(0,0,0,0.4); border: 1px solid var(--border); transform: scale(0.8); transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
+        .modal { background: var(--modal-bg); padding: 25px; border-radius: 16px; width: 340px; box-shadow: 0 20px 40px rgba(0,0,0,0.4); border: 1px solid var(--border); transform: scale(0.8); transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); color: var(--text); }
         .modal-overlay.active .modal { transform: scale(1); }
         .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; font-family: 'Syne', sans-serif; }
         .close-modal { background: none; border: none; font-size: 24px; cursor: pointer; color: var(--text); }
+        
+        .modal-setting-row { display: flex; flex-direction: column; gap: 8px; margin-bottom: 18px; }
+        .modal-setting-row label { font-size: 12px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; }
+        .modal-input { width: 100%; padding: 10px; background: var(--card); border: 1px solid var(--border); border-radius: 8px; color: var(--text); outline: none; font-family: 'Inter', sans-serif; }
+        .modal-input:focus { border-color: var(--accent); }
 
         /* MAIN CONTENT */
         .main-content { flex: 1; display: flex; flex-direction: column; height: 100%; min-width: 0; }
@@ -142,7 +148,10 @@
         /* MESSAGES & TEXT BUBBLES */
         .msg-row { display: flex; gap: 13px; max-width: 85%; animation: slideIn 0.2s ease; position: relative; margin-bottom: 16px; }
         .msg-row.user { flex-direction: row-reverse; margin-left: auto; }
-        .av { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; border: 1px solid var(--border); overflow: hidden; background: var(--ai-bg); }
+        
+        /* Modern Initials Avatar Bubble Badge */
+        .av { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; border: 1px solid var(--border); overflow: hidden; background: var(--ai-bg); font-size: 11px; font-weight: 700; color: var(--text); text-transform: uppercase; }
+        .msg-row.user .av { background: var(--accent); color: white; border-color: var(--accent); }
         
         .bubble { padding: 12px 16px; border-radius: 16px; font-size: 14.5px; line-height: 1.6; color: var(--text); word-break: break-word; position: relative; }
         .msg-row.user .bubble { background: var(--user-bg); border-radius: 16px 16px 4px 16px; }
@@ -204,11 +213,17 @@
     <div class="modal-overlay" id="settingsModal" onclick="if(event.target==this) closeModal('settingsModal')">
         <div class="modal">
             <div class="modal-header"><h3>Settings</h3><button class="close-modal" onclick="closeModal('settingsModal')">×</button></div>
-            <div style="display:flex; justify-content:space-between; align-items:center;">
-                <span>Theme Mode</span>
-                <button onclick="toggleTheme()" id="themeBtn" style="padding:8px 12px; cursor:pointer; border-radius:8px; border:none; background:var(--accent); color:white; font-weight:600;">🌙 Dark Mode</button>
+            
+            <div class="modal-setting-row">
+                <label>User Profile Name</label>
+                <input type="text" id="usernameInput" class="modal-input" placeholder="Enter name..." oninput="updateProfileName(this.value)">
             </div>
-            <p style="font-size: 10px; color: var(--muted); margin-top: 20px; text-align: center; opacity: 0.6;">NeuraChat v2.6 by DYNVALR</p>
+            
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-top: 10px;">
+                <span style="font-size: 14px; font-weight:500;">Theme Mode</span>
+                <button onclick="toggleTheme()" id="themeBtn" style="padding:8px 12px; cursor:pointer; border-radius:8px; border:none; background:var(--accent); color:white; font-weight:600; font-size:12px;">🌙 Dark Mode</button>
+            </div>
+            <p style="font-size: 10px; color: var(--muted); margin-top: 25px; text-align: center; opacity: 0.6;">NeuraChat Public Edition v2.7 by DYNVALR</p>
         </div>
     </div>
 
@@ -228,6 +243,10 @@
         <div class="chat-history" id="chatHistory"></div>
         
         <div class="sidebar-footer">
+            <button class="footer-btn" onclick="exportChatLog()">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M19 12v7H5v-7H3v7c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2v-7h-2zm-6 .67l2.59-2.58L17 11.5l-5 5-5-5 1.41-1.41L11 12.67V3h2v9.67z"/></svg>
+                Export Session
+            </button>
             <button class="footer-btn" onclick="openModal('aboutModal')">
                 <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M11 17h2v-6h-2v6zm1-15C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zM11 9h2V7h-2v2z"/></svg>
                 About AI
@@ -235,6 +254,10 @@
             <button class="footer-btn" onclick="openModal('settingsModal')">
                 <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"></path></svg>
                 Settings
+            </button>
+            <button class="footer-btn danger-btn" onclick="clearAllData()">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
+                Wipe Local Data
             </button>
         </div>
     </div>
@@ -261,7 +284,6 @@
                         <svg viewBox="0 0 24 24" width="18" height="18" fill="white"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"></path></svg>
                     </button>
                 </div>
-                <!-- Interactive Live Character and Word Counter -->
                 <div class="input-counter" id="inputCounter">0 words | 0 characters</div>
             </div>
             <p style="text-align: center; font-size: 11px; margin-top: 8px; color: var(--muted); font-weight: bold;">© 2026 DYNVALR | All Rights Reserved</p>
@@ -275,6 +297,7 @@
         let currentChatId = null;
         let history = []; 
         let allChats = JSON.parse(localStorage.getItem('neurachat_saved_sessions')) || {};
+        let currentUserName = localStorage.getItem('neurachat_username') || 'User';
 
         function openModal(id) { $(id).style.display = 'flex'; setTimeout(() => $(id).classList.add('active'), 10); }
         function closeModal(id) { $(id).classList.remove('active'); setTimeout(() => $(id).style.display = 'none', 300); }
@@ -292,7 +315,62 @@
             $('inputCounter').innerText = `${wordCount} words | ${charCount} characters`;
         }
 
-        // Expanded 3-Theme Switch Logic (Light -> Dark -> Midnight)
+        // Profile Name Tracker Hook
+        function updateProfileName(newName) {
+            const cleanName = newName.trim() || 'User';
+            currentUserName = cleanName;
+            localStorage.setItem('neurachat_username', cleanName);
+            
+            // Re-render active layout avatars instantly
+            document.querySelectorAll('.msg-row.user .av').forEach(avatarNode => {
+                avatarNode.innerText = cleanName.substring(0, 2);
+            });
+        }
+
+        // Complete Chat Session Exporter
+        function exportChatLog() {
+            if (!currentChatId || !allChats[currentChatId] || allChats[currentChatId].messages.length === 0) {
+                alert("There are no active messages in this chat to export.");
+                return;
+            }
+            
+            let exportString = `=========================================\n`;
+            exportString += `   NEURACHAT EXPORTED LOG\n`;
+            exportString += `   Session: ${allChats[currentChatId].title}\n`;
+            exportString += `=========================================\n\n`;
+            
+            allChats[currentChatId].messages.forEach(msg => {
+                const label = msg.role === 'user' ? currentUserName.toUpperCase() : 'NEURACHAT AI';
+                exportString += `[${label}]:\n${msg.content}\n\n-----------------------------------------\n\n`;
+            });
+            
+            const blobObject = new Blob([exportString], { type: 'text/plain;charset=utf-8' });
+            const linkElement = document.createElement('a');
+            linkElement.href = URL.createObjectURL(blobObject);
+            linkElement.download = `neurachat_session_${Date.now()}.txt`;
+            document.body.appendChild(linkElement);
+            linkElement.click();
+            document.body.removeChild(linkElement);
+        }
+
+        // Complete Local System Wipe Hook
+        function clearAllData() {
+            if (confirm("🚨 DANGER ZONE: This will securely delete all your chats, themes, and personalized user settings permanently. Are you sure?")) {
+                localStorage.clear();
+                allChats = {};
+                currentChatId = null;
+                history = [];
+                currentUserName = 'User';
+                $('usernameInput').value = '';
+                document.body.setAttribute('data-theme', 'dark');
+                $('themeBtn').innerHTML = '🌙 Dark Mode';
+                
+                createNewChat();
+                alert("Local app logs successfully wiped clean!");
+            }
+        }
+
+        // Theme Rotation Configuration Switch (Light -> Dark -> Midnight)
         function toggleTheme() {
             const currentTheme = document.body.getAttribute('data-theme') || 'dark';
             let nextTheme = 'light';
@@ -311,14 +389,13 @@
             localStorage.setItem('neurachat_theme', nextTheme);
         }
 
-        // Prompt Starter Execution Hook
         function runPromptStarter(promptText) {
             $('msgInput').value = promptText;
             $('msgInput').focus();
             send();
         }
 
-        // Add Message Node Element Builder (Includes integrated Edit, Copy, Date stamping, and Regeneration)
+        // Dynamic Avatar Builder (Includes integrated Edit, Copy, Date, and Profile initialization hooks)
         function addMsg(role, text, isFirstReply = false) {
             const welcomeNode = document.querySelector('.welcome');
             if (welcomeNode) welcomeNode.remove();
@@ -327,7 +404,9 @@
             row.className = 'msg-row ' + role;
             
             let clean = text.replace(/Vipul D\. Kadam|Vipul Kadam|Vipul/gi, "DYNVALR");
-            const avatar = role === 'user' ? '👤' : '<img src="logo.png" width="20" onerror="this.outerHTML=\'🤖\'">';
+            
+            // Dynamically assign initials for users or standard layout icons for AI
+            const avatarHtml = role === 'user' ? currentUserName.substring(0, 2) : '<img src="logo.png" width="20" onerror="this.outerHTML=\'🤖\'">';
             
             let contentHTML = '';
             if (role === 'ai') {
@@ -340,9 +419,8 @@
                 contentHTML += `<p class="user-text-p">${clean}</p>`;
             }
             
-            row.innerHTML = `<div class="av">${avatar}</div><div class="bubble">${contentHTML}</div>`;
+            row.innerHTML = `<div class="av">${avatarHtml}</div><div class="bubble">${contentHTML}</div>`;
             
-            // Context Action Toolbar Creation
             const actionContainer = document.createElement('div');
             actionContainer.className = 'msg-actions-container';
             
@@ -389,7 +467,6 @@
 
             $('chatInner').appendChild(row);
             
-            // Code Blocks Parsing Engine
             if (role === 'ai') {
                 row.querySelectorAll('pre').forEach((preBlock) => {
                     const innerCode = preBlock.querySelector('code');
@@ -431,7 +508,6 @@
             return row;
         }
 
-        // Inline Editor Configuration
         function makeInlineEditable(userRowNode) {
             const textParagraph = userRowNode.querySelector('.user-text-p');
             if (!textParagraph) return;
@@ -464,7 +540,6 @@
             };
         }
 
-        // Helper Network Fetch Utility
         async function fetchWithRetry(url, options, retries = 3, delay = 4000) {
             for (let i = 0; i < retries; i++) {
                 try {
@@ -477,7 +552,6 @@
             }
         }
 
-        // Context Re-evaluation API Dispatcher
         async function submitInlineEdit(userRowNode, newText) {
             const innerContainer = $('chatInner');
             const targetIndex = Array.from(innerContainer.children).indexOf(userRowNode);
@@ -503,35 +577,26 @@
             executeBackendChatRequest(newText);
         }
 
-        // Response Regeneration Logic Controller
         async function regenerateLastAIResponse() {
             const innerContainer = $('chatInner');
             if (innerContainer.children.length < 2) return; 
 
-            // Safely remove the last AI bubble row
             innerContainer.removeChild(innerContainer.lastChild);
 
-            // Pop the last assistant message from running cache arrays
             if (history.length > 0 && history[history.length - 1].role === 'assistant') {
                 history.pop();
             }
             if (allChats[currentChatId] && allChats[currentChatId].messages.length > 0) {
                 const totalMsgs = allChats[currentChatId].messages;
-                if (totalMsgs[totalMsgs.length - 1].role === 'ai') {
-                    totalMsgs.pop();
-                }
+                if (totalMsgs[totalMsgs.length - 1].role === 'ai') totalMsgs.pop();
             }
 
-            // Grab the text of the preceding user message to dispatch again
             const lastUserPrompt = history[history.length - 1].content;
-            
-            // Pop user temporarily out of standard stack history arrays to match network expectations
             history.pop();
             
             executeBackendChatRequest(lastUserPrompt);
         }
 
-        // Shared API execution gateway pipeline
         async function executeBackendChatRequest(promptText) {
             const isFirstAI = (history.length === 0);
             history.push({ role: 'user', content: promptText });
@@ -570,14 +635,12 @@
             }
         }
 
-        // Main Messaging Send Gateway
         async function send() {
             const input = $('msgInput');
             const text = input.value.trim();
             if(!text) return;
             input.value = '';
             
-            // Reset character panel elements
             $('inputCounter').innerText = "0 words | 0 characters";
             input.style.height = 'auto';
 
@@ -667,7 +730,6 @@
             renderSidebarHistory();
         }
 
-        // Enhanced Dashboard Splash with Interactive Prompt Cards
         function showWelcomeScreen() {
             $('chatInner').innerHTML = `
                 <div class="welcome">
@@ -684,7 +746,7 @@
                             <strong>💡 Brainstorm Ideas</strong>
                             <span>Discover creative software project strategies instantly.</span>
                         </div>
-                        <div class="prompt-card" onclick="runPromptStarter('📝 Explain the concept of REST API endpoints like I am five years old.')">
+                        <div class="prompt-card" onclick="runPromptStarter('Rest API Endpoint explanation')">
                             <strong>📝 Explain Concepts</strong>
                             <span>Deconstruct complex engineering problems down cleanly.</span>
                         </div>
@@ -709,6 +771,8 @@
             if (savedTheme === 'light') initialLabel = '☀️ Light Mode';
             if (savedTheme === 'midnight') initialLabel = '🌌 Midnight Mode';
             $('themeBtn').innerHTML = initialLabel;
+            
+            $('usernameInput').value = currentUserName === 'User' ? '' : currentUserName;
             
             createNewChat();
         };
