@@ -36,7 +36,7 @@
             color: grey;
             text-align: right;
             margin-top: 5px;
-            display: block; /* Ensures it starts on a new line */
+            display: block;
         }
         /* SIDEBAR */
         .sidebar { width: 260px; background: var(--sidebar); border-right: 1px solid var(--border); display: flex; flex-direction: column; padding: 15px; flex-shrink: 0; transition: 0.3s ease; }
@@ -46,6 +46,7 @@
         .new-chat-btn:hover { background: var(--accent); color: white; }
 
         .chat-list-title { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); margin-bottom: 10px; font-weight: 700; }
+        .chat-history { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; }
         .chat-history-item { 
             display: flex; 
             align-items: center; 
@@ -323,8 +324,8 @@
         let history = []; 
         let allChats = JSON.parse(localStorage.getItem('neurachat_saved_sessions')) || {};
 
-        function openModal(id) { $(id).style.display = 'flex'; setTimeout(() => $(id).classList.add('active'), 10); }
-        function closeModal(id) { $(id).classList.remove('active'); setTimeout(() => $(id).style.display = 'none', 300); }
+        function openModal(id) { $(id).style.display = 'flex'; setTimeout(() =>$(id).classList.add('active'), 10); }
+        function closeModal(id) { $(id).classList.remove('active'); setTimeout(() =>$(id).style.display = 'none', 300); }
         function toggleSidebar() { $('sidebar').classList.toggle('collapsed'); }
 
         function toggleTheme() {
@@ -347,7 +348,6 @@
             
             row.innerHTML = `<div class="av">${avatar}</div><div class="bubble">${content}</div>`;
             
-            // Add custom action overlay tags if role is user
             if (role === 'user') {
                 const actionContainer = document.createElement('div');
                 actionContainer.className = 'user-actions-container';
@@ -407,267 +407,4 @@
                                 btn.innerText = 'Copy';
                                 btn.classList.remove('copied');
                             }, 2000);
-                        } catch (err) { console.error(err); }
-                    };
-                    preBlock.appendChild(btn);
-                    
-                    if (innerCode) hljs.highlightElement(innerCode);
-                });
-            }
-            
-            $('chatScroll').scrollTop = $('chatScroll').scrollHeight;
-            return row;
-        }
-
-        function makeInlineEditable(userRowNode) {
-            const textParagraph = userRowNode.querySelector('.user-text-p');
-            if (!textParagraph) return;
-            
-            const originalText = textParagraph.innerText;
-            const currentBubble = userRowNode.querySelector('.bubble');
-            
-            const textInput = document.createElement('textarea');
-            textInput.className = 'inline-edit-area';
-            textInput.value = originalText;
-            textInput.rows = 1;
-            
-            currentBubble.innerHTML = '';
-            currentBubble.appendChild(textInput);
-            textInput.focus();
-            
-            textInput.oninput = function() {
-                this.style.height = 'auto';
-                this.style.height = this.scrollHeight + 'px';
-            };
-            textInput.style.height = textInput.scrollHeight + 'px';
-            
-            textInput.onkeydown = function(e) {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault();
-                    const revisedText = textInput.value.trim();
-                    if (!revisedText) return;
-                    submitInlineEdit(userRowNode, revisedText);
-                }
-            };
-        }
-
-        async function submitInlineEdit(userRowNode, newText) {
-            // Find index of this node in chat context list
-            const innerContainer = $('chatInner');
-            const targetIndex = Array.from(innerContainer.children).indexOf(userRowNode);
-            if (targetIndex === -1) return;
-            
-            // Clear all sibling elements downstream from our user element position
-            while (innerContainer.children.length > targetIndex + 1) {
-                innerContainer.removeChild(innerContainer.lastChild);
-            }
-            
-            // Re-render user cell layout with updated copy configuration properties
-            const bubble = userRowNode.querySelector('.bubble');
-            bubble.innerHTML = `<p class="user-text-p">${newText}</p>`;
-            
-            // Truncate runtime state structural arrays mapping backend pipeline arrays
-            const contextMsgPairCount = Math.floor(targetIndex / 2);
-            history = history.slice(0, contextMsgPairCount * 2);
-            
-            if (allChats[currentChatId]) {
-                allChats[currentChatId].messages = allChats[currentChatId].messages.slice(0, contextMsgPairCount * 2);
-            }
-            
-            // Process API integration update lifecycle sequentially downstream
-            allChats[currentChatId].messages.push({ role: 'user', content: newText });
-            saveToLocalStorage();
-
-            const loadingRow = document.createElement('div');
-            loadingRow.className = 'msg-row ai';
-            loadingRow.innerHTML = `<div class="av"><img src="logo.png" width="20" onerror="this.outerHTML=\'🤖\'"></div><div class="bubble typing"><span id="loadText">NeuraChat is waking up backend...</span><span></span><span></span><span></span></div>`;
-            innerContainer.appendChild(loadingRow);
-            $('chatScroll').scrollTop = $('chatScroll').scrollHeight;
-
-            try {
-                const data = await fetchWithRetry('https://neurachat-xxy2.onrender.com/chat', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ userMessage: newText, chatHistory: history })
-                });
-                
-                loadingRow.remove(); 
-                
-                let reply = "";
-                if (data && data.reply) {
-                    reply = data.reply;
-                } else if (data && data.response) {
-                    reply = data.response;
-                } else if (data && data.choices && data.choices[0] && data.choices[0].message) {
-                    reply = data.choices[0].message.content;
-                }
-                
-                if (reply) {
-                    addMsg('ai', reply);
-                    history.push({role:'user', content: newText}, {role:'assistant', content:reply});
-                    allChats[currentChatId].messages.push({ role: 'ai', content: reply });
-                    saveToLocalStorage();
-                } else {
-                    addMsg('ai', "⚠️ Error: Received an empty or unexpected response structure from the server.");
-                }
-                
-            } catch(e) { 
-                loadingRow.remove();
-                addMsg('ai', `❌ Connection Failed: ${e.message}. Please check your Render logs or OpenRouter balance.`);
-            }
-        }
-
-        async function fetchWithRetry(url, options, retries = 3, delay = 4000) {
-            for (let i = 0; i < retries; i++) {
-                try {
-                    const res = await fetch(url, options);
-                    if (res.ok) return await res.json();
-                } catch (err) {
-                    if (i === retries - 1) throw err;
-                }
-                await new Promise(resolve => setTimeout(resolve, delay));
-            }
-        }
-
-        async function send() {
-            const input = $('msgInput');
-            const text = input.value.trim();
-            if(!text) return;
-            input.value = '';
-            input.style.height = 'auto';
-
-            if (!currentChatId) {
-                currentChatId = 'chat_' + Date.now();
-                allChats[currentChatId] = { title: text.substring(0, 24) + '...', messages: [] };
-            }
-
-            addMsg('user', text);
-            allChats[currentChatId].messages.push({ role: 'user', content: text });
-            saveToLocalStorage();
-
-            const loadingRow = document.createElement('div');
-            loadingRow.className = 'msg-row ai';
-            loadingRow.innerHTML = `<div class="av"><img src="logo.png" width="20" onerror="this.outerHTML=\'🤖\'"></div><div class="bubble typing"><span id="loadText">NeuraChat is waking up backend...</span><span></span><span></span><span></span></div>`;
-            $('chatInner').appendChild(loadingRow);
-            $('chatScroll').scrollTop = $('chatScroll').scrollHeight;
-
-            try {
-                const data = await fetchWithRetry('https://neurachat-xxy2.onrender.com/chat', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ userMessage: text, chatHistory: history })
-                });
-                
-                loadingRow.remove(); 
-                
-                let reply = "";
-                if (data && data.reply) {
-                    reply = data.reply;
-                } else if (data && data.response) {
-                    reply = data.response;
-                } else if (data && data.choices && data.choices[0] && data.choices[0].message) {
-                    reply = data.choices[0].message.content;
-                }
-                
-                if (reply) {
-                    addMsg('ai', reply);
-                    
-                    history.push({role:'user', content:text}, {role:'assistant', content:reply});
-                    allChats[currentChatId].messages.push({ role: 'ai', content: reply });
-                    saveToLocalStorage();
-                } else {
-                    addMsg('ai', "⚠️ Error: Received an empty or unexpected response structure from the server.");
-                    console.log("Unexpected data structure:", data);
-                }
-                
-            } catch(e) { 
-                loadingRow.remove();
-                addMsg('ai', `❌ Connection Failed: ${e.message}. Please check your Render logs or OpenRouter balance.`);
-                console.error("Chat Error:", e);
-            }
-        }
-
-        function saveToLocalStorage() {
-            localStorage.setItem('neurachat_saved_sessions', JSON.stringify(allChats));
-            renderSidebarHistory();
-        }
-
-        function renderSidebarHistory() {
-            const historyContainer = $('chatHistory');
-            historyContainer.innerHTML = '';
-            
-            Object.keys(allChats).sort((a,b) => b.split('_')[1] - a.split('_')[1]).forEach(id => {
-                const itemWrapper = document.createElement('div');
-                itemWrapper.className = 'chat-history-item' + (id === currentChatId ? ' active' : '');
-                
-                const titleBtn = document.createElement('button');
-                titleBtn.className = 'chat-item-btn';
-                titleBtn.innerText = allChats[id].title;
-                titleBtn.onclick = () => loadSavedChat(id);
-                
-                const deleteBtn = document.createElement('button');
-                deleteBtn.className = 'delete-chat-btn';
-                deleteBtn.setAttribute('title', 'Delete chat');
-                deleteBtn.innerHTML = `<svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>`;
-                deleteBtn.onclick = (e) => deleteChat(id, e);
-                
-                itemWrapper.appendChild(titleBtn);
-                itemWrapper.appendChild(deleteBtn);
-                historyContainer.appendChild(itemWrapper);
-            });
-        }
-
-        function deleteChat(id, event) {
-            event.stopPropagation();
-            if (confirm("Are you sure you want to delete this chat history?")) {
-                delete allChats[id];
-                if (currentChatId === id) {
-                    createNewChat();
-                } else {
-                    saveToLocalStorage();
-                }
-            }
-        }
-
-        function loadSavedChat(id) {
-            currentChatId = id;
-            $('chatInner').innerHTML = '';
-            history = [];
-            
-            const session = allChats[id];
-            session.messages.forEach(msg => {
-                addMsg(msg.role, msg.content);
-                if(msg.role === 'user') history.push({role: 'user', content: msg.content});
-                if(msg.role === 'ai') history.push({role: 'assistant', content: msg.content});
-            });
-            renderSidebarHistory();
-        }
-
-        function createNewChat() { 
-            currentChatId = null;
-            history = []; 
-            $('chatInner').innerHTML = ''; 
-            showWelcome(); 
-            renderSidebarHistory();
-        }
-
-        function showWelcome() { 
-            $('chatInner').innerHTML = `
-                <div class="welcome">
-                    <div class="welcome-logo-container">
-                        <img src="logo.png" alt="NeuraChat Logo" onerror="this.style.display='none'; this.parentElement.innerText='🤖'">
-                    </div>
-                    <h2>Welcome to NeuraChat</h2>
-                    <p>Ask me anything. Built to answer creatively and securely.</p>
-                </div>`; 
-        }
-
-        const savedTheme = localStorage.getItem('neurachat_theme') || 'dark';
-        document.body.setAttribute('data-theme', savedTheme);
-        $('themeBtn').innerHTML = savedTheme === 'light' ? '🌙 Dark Mode' : '☀️ Light Mode';
-        
-        showWelcome();
-        renderSidebarHistory();
-    </script>
-</body>
-</html>
+                        } catch (err) { console
