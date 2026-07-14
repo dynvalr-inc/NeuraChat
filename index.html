@@ -407,4 +407,182 @@
                                 btn.innerText = 'Copy';
                                 btn.classList.remove('copied');
                             }, 2000);
-                        } catch (err) { console
+                        } catch (err) { console.error(err); }
+                    };
+                    preBlock.appendChild(btn);
+                    
+                    if (innerCode) hljs.highlightElement(innerCode);
+                });
+            }
+            
+            $('chatScroll').scrollTop = $('chatScroll').scrollHeight;
+            return row;
+        }
+
+        function makeInlineEditable(userRowNode) {
+            const textParagraph = userRowNode.querySelector('.user-text-p');
+            if (!textParagraph) return;
+            
+            const originalText = textParagraph.innerText;
+            const currentBubble = userRowNode.querySelector('.bubble');
+            
+            const textInput = document.createElement('textarea');
+            textInput.className = 'inline-edit-area';
+            textInput.value = originalText;
+            textInput.rows = 1;
+            
+            currentBubble.innerHTML = '';
+            currentBubble.appendChild(textInput);
+            textInput.focus();
+            
+            textInput.oninput = function() {
+                this.style.height = 'auto';
+                this.style.height = this.scrollHeight + 'px';
+            };
+            textInput.style.height = textInput.scrollHeight + 'px';
+            
+            textInput.onkeydown = function(e) {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    const revisedText = textInput.value.trim();
+                    if (!revisedText) return;
+                    submitInlineEdit(userRowNode, revisedText);
+                }
+            };
+        }
+
+        async function submitInlineEdit(userRowNode, newText) {
+            const innerContainer = $('chatInner');
+            const targetIndex = Array.from(innerContainer.children).indexOf(userRowNode);
+            if (targetIndex === -1) return;
+            
+            while (innerContainer.children.length > targetIndex + 1) {
+                innerContainer.removeChild(innerContainer.lastChild);
+            }
+            
+            const bubble = userRowNode.querySelector('.bubble');
+            bubble.innerHTML = `<p class="user-text-p">${newText}</p>`;
+            
+            const contextMsgPairCount = Math.floor(targetIndex / 2);
+            history = history.slice(0, contextMsgPairCount * 2);
+            
+            if (allChats[currentChatId]) {
+                allChats[currentChatId].messages = allChats[currentChatId].messages.slice(0, contextMsgPairCount * 2);
+            }
+            
+            allChats[currentChatId].messages.push({ role: 'user', content: newText });
+            saveToLocalStorage();
+
+            const loadingRow = document.createElement('div');
+            loadingRow.className = 'msg-row ai';
+            loadingRow.innerHTML = `<div class="av"><img src="logo.png" width="20" onerror="this.outerHTML=\'🤖\'"></div><div class="bubble typing"><span id="loadText">NeuraChat is waking up backend...</span><span></span><span></span><span></span></div>`;
+            innerContainer.appendChild(loadingRow);
+            $('chatScroll').scrollTop = $('chatScroll').scrollHeight;
+
+            try {
+                const data = await fetchWithRetry('https://neurachat-xxy2.onrender.com/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ userMessage: newText, chatHistory: history })
+                });
+                
+                loadingRow.remove(); 
+                
+                let reply = "";
+                if (data && data.reply) {
+                    reply = data.reply;
+                } else if (data && data.response) {
+                    reply = data.response;
+                } else if (data && data.choices && data.choices[0] && data.choices[0].message) {
+                    reply = data.choices[0].message.content;
+                }
+                
+                if (reply) {
+                    addMsg('ai', reply);
+                    history.push({role:'user', content: newText}, {role:'assistant', content:reply});
+                    allChats[currentChatId].messages.push({ role: 'ai', content: reply });
+                    saveToLocalStorage();
+                } else {
+                    addMsg('ai', "⚠️ Error: Received an empty or unexpected response structure from the server.");
+                }
+                
+            } catch(e) { 
+                loadingRow.remove();
+                addMsg('ai', `❌ Connection Failed: ${e.message}. Please check your Render logs or OpenRouter balance.`);
+            }
+        }
+
+        async function fetchWithRetry(url, options, retries = 3, delay = 4000) {
+            for (let i = 0; i < retries; i++) {
+                try {
+                    const res = await fetch(url, options);
+                    if (res.ok) return await res.json();
+                } catch (err) {
+                    if (i === retries - 1) throw err;
+                }
+                await new Promise(resolve => setTimeout(resolve, delay));
+            }
+        }
+
+        async function send() {
+            const input = $('msgInput');
+            const text = input.value.trim();
+            if(!text) return;
+            input.value = '';
+            input.style.height = 'auto';
+
+            if (!currentChatId) {
+                currentChatId = 'chat_' + Date.now();
+                allChats[currentChatId] = { title: text.substring(0, 24) + '...', messages: [] };
+            }
+
+            addMsg('user', text);
+            allChats[currentChatId].messages.push({ role: 'user', content: text });
+            saveToLocalStorage();
+
+            const loadingRow = document.createElement('div');
+            loadingRow.className = 'msg-row ai';
+            loadingRow.innerHTML = `<div class="av"><img src="logo.png" width="20" onerror="this.outerHTML=\'🤖\'"></div><div class="bubble typing"><span id="loadText">NeuraChat is waking up backend...</span><span></span><span></span><span></span></div>`;
+            $('chatInner').appendChild(loadingRow);
+            $('chatScroll').scrollTop = $('chatScroll').scrollHeight;
+
+            try {
+                const data = await fetchWithRetry('https://neurachat-xxy2.onrender.com/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ userMessage: text, chatHistory: history })
+                });
+                
+                loadingRow.remove(); 
+                
+                let reply = "";
+                if (data && data.reply) {
+                    reply = data.reply;
+                } else if (data && data.response) {
+                    reply = data.response;
+                } else if (data && data.choices && data.choices[0] && data.choices[0].message) {
+                    reply = data.choices[0].message.content;
+                }
+                
+                if (reply) {
+                    addMsg('ai', reply);
+                    history.push({role:'user', content:text}, {role:'assistant', content:reply});
+                    allChats[currentChatId].messages.push({ role: 'ai', content: reply });
+                    saveToLocalStorage();
+                } else {
+                    addMsg('ai', "⚠️ Error: Received an empty or unexpected response structure from the server.");
+                }
+                
+            } catch(e) { 
+                loadingRow.remove();
+                addMsg('ai', `❌ Connection Failed: ${e.message}. Please check your Render logs or OpenRouter balance.`);
+            }
+        }
+
+        function saveToLocalStorage() {
+            localStorage.setItem('neurachat_saved_sessions', JSON.stringify(allChats));
+            renderSidebarHistory();
+        }
+
+        function renderSidebarHistory() {
+            const historyContainer =
