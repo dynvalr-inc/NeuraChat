@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>NeuraChat — BY DYNVALR</title>
     
-    <!-- External Dependencies for Markdown Rendering & Code Highlighting -->
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/tokyo-night-dark.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
@@ -206,7 +205,6 @@
 </head>
 <body data-theme="dark">
 
-    <!-- System Control Modals -->
     <div class="modal-overlay" id="settingsModal" onclick="if(event.target==this) closeModal('settingsModal')">
         <div class="modal">
             <div class="modal-header"><h3>Settings</h3><button class="close-modal" onclick="closeModal('settingsModal')">×</button></div>
@@ -227,7 +225,6 @@
         </div>
     </div>
 
-    <!-- Navigation Drawer / Sidebar -->
     <div class="sidebar" id="sidebar">
         <button class="new-chat-btn" onclick="createNewChat()"><strong>+</strong> New Chat</button>
         <div class="chat-list-title">Recent History</div>
@@ -245,7 +242,6 @@
         </div>
     </div>
 
-    <!-- Application Board Container -->
     <div class="main-content">
         <div class="header">
             <button class="menu-toggle" onclick="toggleSidebar()">
@@ -270,7 +266,6 @@
         </div>
     </div>
 
-    <!-- Engine Script Runtime Block -->
     <script>
         const $ = id => document.getElementById(id);
         
@@ -409,7 +404,20 @@
             };
         }
 
-        // Context Re-evaluation API Dispatcher
+        // Helper function to handle network calls securely with retries
+        async function fetchWithRetry(url, options, retries = 3, delay = 4000) {
+            for (let i = 0; i < retries; i++) {
+                try {
+                    const res = await fetch(url, options);
+                    if (res.ok) return await res.json();
+                } catch (err) {
+                    if (i === retries - 1) throw err;
+                }
+                await new Promise(resolve => setTimeout(resolve, delay));
+            }
+        }
+
+        // Context Re-evaluation API Dispatcher for edited messages
         async function submitInlineEdit(userRowNode, newText) {
             const innerContainer = $('chatInner');
             const targetIndex = Array.from(innerContainer.children).indexOf(userRowNode);
@@ -466,18 +474,7 @@
             }
         }
 
-        async function fetchWithRetry(url, options, retries = 3, delay = 4000) {
-            for (let i = 0; i < retries; i++) {
-                try {
-                    const res = await fetch(url, options);
-                    if (res.ok) return await res.json();
-                } catch (err) {
-                    if (i === retries - 1) throw err;
-                }
-                await new Promise(resolve => setTimeout(resolve, delay));
-            }
-        }
-
+        // Main Send Function
         async function send() {
             const input = $('msgInput');
             const text = input.value.trim();
@@ -492,6 +489,9 @@
 
             addMsg('user', text);
             allChats[currentChatId].messages.push({ role: 'user', content: text });
+            
+            // Sync with backend array format
+            history.push({ role: 'user', content: text });
             saveToLocalStorage();
 
             const loadingRow = document.createElement('div');
@@ -504,7 +504,7 @@
                 const data = await fetchWithRetry('https://neurachat-xxy2.onrender.com/chat', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ userMessage: text, chatHistory: history })
+                    body: JSON.stringify({ userMessage: text, chatHistory: history.slice(0, -1) })
                 });
                 
                 loadingRow.remove(); 
@@ -516,7 +516,7 @@
                 
                 if (reply) {
                     addMsg('ai', reply);
-                    history.push({role:'user', content:text}, {role:'assistant', content:reply});
+                    history.push({role:'assistant', content:reply});
                     allChats[currentChatId].messages.push({ role: 'ai', content: reply });
                     saveToLocalStorage();
                 } else {
