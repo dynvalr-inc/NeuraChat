@@ -22,6 +22,7 @@
             --border: rgba(255,255,255,0.25); --text: #0d0d10; --muted: #2e004d;
             --accent: #b700ff; --user-bg: #ffbbf4; --ai-bg: #ffffff;
             --placeholder: rgba(255, 255, 255, 0.9); --modal-bg: rgba(255, 255, 255, 0.95);
+            --table-hdr: #e599f7; --table-zebra: rgba(255,255,255,0.4);
         }
 
         /* THEME 2: DARK MODE */
@@ -30,6 +31,7 @@
             --border: rgba(255,255,255,0.08); --text: #ececf1; --muted: #9a9ab0;
             --accent: #bb66ff; --user-bg: #34344a; --ai-bg: #1e1e2e;
             --placeholder: rgba(255, 255, 255, 0.5); --modal-bg: #1e1e2e;
+            --table-hdr: #2d2d3f; --table-zebra: rgba(255,255,255,0.02);
         }
 
         /* THEME 3: MIDNIGHT BLACK MODE */
@@ -38,6 +40,7 @@
             --border: rgba(255,255,255,0.12); --text: #f3f3f6; --muted: #828299;
             --accent: #9d33ff; --user-bg: #1f1f2e; --ai-bg: #0d0d12;
             --placeholder: rgba(255, 255, 255, 0.4); --modal-bg: #0a0a0f;
+            --table-hdr: #181824; --table-zebra: rgba(255,255,255,0.03);
         }
 
         body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); height: 100dvh; display: flex; overflow: hidden; transition: 0.3s ease; }
@@ -146,10 +149,9 @@
         .prompt-card strong { font-family: 'Syne', sans-serif; font-size: 14px; color: var(--accent); }
 
         /* MESSAGES & TEXT BUBBLES */
-        .msg-row { display: flex; gap: 13px; max-width: 85%; animation: slideIn 0.2s ease; position: relative; margin-bottom: 16px; }
+        .msg-row { display: flex; gap: 13px; max-width: 85%; animation: slideIn 0.2s ease; position: relative; margin-bottom: 24px; }
         .msg-row.user { flex-direction: row-reverse; margin-left: auto; }
         
-        /* Modern Initials Avatar Bubble Badge */
         .av { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; border: 1px solid var(--border); overflow: hidden; background: var(--ai-bg); font-size: 11px; font-weight: 700; color: var(--text); text-transform: uppercase; }
         .msg-row.user .av { background: var(--accent); color: white; border-color: var(--accent); }
         
@@ -157,11 +159,27 @@
         .msg-row.user .bubble { background: var(--user-bg); border-radius: 16px 16px 4px 16px; }
         .msg-row.ai .bubble { background: var(--ai-bg); border-radius: 16px 16px 16px 4px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); min-width: 0; width: 100%; }
 
-        /* THE DATE DISPLAY BADGE */
+        /* COLLAPSIBLE LONG CONTENT WRAPPERS */
+        .collapsible-content { max-height: 380px; overflow: hidden; position: relative; transition: max-height 0.4s cubic-bezier(0.25, 1, 0.5, 1); }
+        .collapsible-content.expanded { max-height: none !important; }
+        .collapsible-content::after { content: ''; position: absolute; bottom: 0; left: 0; width: 100%; height: 50px; background: linear-gradient(transparent, var(--ai-bg)); pointer-events: none; transition: 0.2s; }
+        .collapsible-content.expanded::after { display: none; }
+        
+        .toggle-expand-btn { display: none; background: var(--card); border: 1px solid var(--border); color: var(--accent); font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; padding: 6px 14px; border-radius: 20px; cursor: pointer; margin-top: 10px; width: fit-content; transition: 0.2s; }
+        .toggle-expand-btn:hover { background: var(--accent); color: white; }
+
+        /* MARKDOWN TABLES & BLOCKQUOTES */
+        .bubble table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 13.5px; border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
+        .bubble th { background: var(--table-hdr); padding: 8px 12px; font-weight: 600; text-align: left; border-bottom: 2px solid var(--border); }
+        .bubble td { padding: 8px 12px; border-bottom: 1px solid var(--border); }
+        .bubble tr:nth-child(even) { background: var(--table-zebra); }
+        
+        .bubble blockquote { border-left: 4px solid var(--accent); background: rgba(183,0,255,0.05); padding: 8px 16px; margin: 12px 0; border-radius: 0 8px 8px 0; font-style: italic; color: var(--muted); }
+
         .chat-date-stamp { font-size: 11px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; color: var(--muted); opacity: 0.7; margin-bottom: 6px; display: block; border-bottom: 1px dashed rgba(0,0,0,0.1); padding-bottom: 4px; }
         [data-theme="dark"] .chat-date-stamp, [data-theme="midnight"] .chat-date-stamp { border-color: rgba(255,255,255,0.1); }
 
-        /* CONTEXT INTERACTION BUTTONS (USER & AI) */
+        /* ACTION BADGES */
         .msg-actions-container { display: flex; gap: 6px; position: absolute; bottom: -24px; opacity: 0; transition: opacity 0.2s ease, transform 0.2s ease; transform: translateY(-5px); z-index: 10; }
         .msg-row.user .msg-actions-container { right: 15px; }
         .msg-row.ai .msg-actions-container { left: 45px; }
@@ -198,9 +216,18 @@
         /* BOTTOM INPUT PANEL & COUNTERS */
         .input-area { padding: 14px 20px 18px; background: var(--surface); }
         .input-wrapper { max-width: 85%; margin: 0 auto; display: flex; flex-direction: column; gap: 4px; }
-        .input-box { display: flex; align-items: flex-end; gap: 10px; background: var(--card); border-radius: 14px; padding: 10px 14px; border: 1px solid var(--border); }
-        textarea { flex: 1; background: none; border: none; color: white; font-family: 'Inter', sans-serif; font-size: 14px; resize: none; outline: none; max-height: 200px; }
+        .input-box { display: flex; align-items: flex-end; gap: 10px; background: var(--card); border-radius: 14px; padding: 10px 14px; border: 1px solid var(--border); position: relative; }
+        textarea { flex: 1; background: none; border: none; color: white; font-family: 'Inter', sans-serif; font-size: 14px; resize: none; outline: none; max-height: 200px; padding-right: 40px; }
         ::placeholder { color: var(--placeholder); opacity: 0.8; }
+        
+        /* Mic and Send Layout Utility */
+        .input-actions { display: flex; align-items: center; gap: 8px; }
+        .mic-btn { background: none; border: none; color: var(--muted); cursor: pointer; padding: 8px; display: flex; align-items: center; justify-content: center; border-radius: 50%; transition: 0.2s; }
+        .mic-btn:hover { background: rgba(255,255,255,0.1); color: var(--accent); }
+        .mic-btn.listening { color: #ff4d4d; animation: pulseMic 1.5s infinite; background: rgba(255, 77, 77, 0.15); }
+        
+        @keyframes pulseMic { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
+
         .send-btn { background: var(--accent); border: none; border-radius: 10px; cursor: pointer; padding: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: transform 0.1s; }
         .send-btn:active { transform: scale(0.95); }
         
@@ -223,7 +250,7 @@
                 <span style="font-size: 14px; font-weight:500;">Theme Mode</span>
                 <button onclick="toggleTheme()" id="themeBtn" style="padding:8px 12px; cursor:pointer; border-radius:8px; border:none; background:var(--accent); color:white; font-weight:600; font-size:12px;">🌙 Dark Mode</button>
             </div>
-            <p style="font-size: 10px; color: var(--muted); margin-top: 25px; text-align: center; opacity: 0.6;">NeuraChat Public Edition v2.7 by DYNVALR</p>
+            <p style="font-size: 10px; color: var(--muted); margin-top: 25px; text-align: center; opacity: 0.6;">NeuraChat Public Edition v3.0 by DYNVALR</p>
         </div>
     </div>
 
@@ -279,10 +306,16 @@
         <div class="input-area">
             <div class="input-wrapper">
                 <div class="input-box">
-                    <textarea id="msgInput" placeholder="Type a message..." rows="1" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();send();}" oninput="updateCounter(this)"></textarea>
-                    <button class="send-btn" onclick="send()">
-                        <svg viewBox="0 0 24 24" width="18" height="18" fill="white"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"></path></svg>
-                    </button>
+                    <textarea id="msgInput" placeholder="Type a message or use voice..." rows="1" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();send();}" oninput="updateCounter(this)"></textarea>
+                    
+                    <div class="input-actions">
+                        <button class="mic-btn" id="micBtn" onclick="toggleSpeechInput()" title="Voice Input">
+                            <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.3-3c0 3-2.54 5.1-5.3 5.1S6.7 14 6.7 11H5c0 3.41 2.72 6.23 6 6.72V21h2v-3.28c3.28-.48 6-3.3 6-6.72h-1.7z"/></svg>
+                        </button>
+                        <button class="send-btn" onclick="send()">
+                            <svg viewBox="0 0 24 24" width="18" height="18" fill="white"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"></path></svg>
+                        </button>
+                    </div>
                 </div>
                 <div class="input-counter" id="inputCounter">0 words | 0 characters</div>
             </div>
@@ -298,6 +331,7 @@
         let history = []; 
         let allChats = JSON.parse(localStorage.getItem('neurachat_saved_sessions')) || {};
         let currentUserName = localStorage.getItem('neurachat_username') || 'User';
+        let recognition = null;
 
         function openModal(id) { $(id).style.display = 'flex'; setTimeout(() => $(id).classList.add('active'), 10); }
         function closeModal(id) { $(id).classList.remove('active'); setTimeout(() => $(id).style.display = 'none', 300); }
@@ -321,10 +355,60 @@
             currentUserName = cleanName;
             localStorage.setItem('neurachat_username', cleanName);
             
-            // Re-render active layout avatars instantly
             document.querySelectorAll('.msg-row.user .av').forEach(avatarNode => {
                 avatarNode.innerText = cleanName.substring(0, 2);
             });
+        }
+
+        // Native Speech Recognition Engine Hook
+        function toggleSpeechInput() {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (!SpeechRecognition) {
+                alert("Speech recognition is not supported in this browser. Try Chrome, Edge, or Safari.");
+                return;
+            }
+
+            if (recognition) {
+                recognition.stop();
+                return;
+            }
+
+            recognition = new SpeechRecognition();
+            recognition.continuous = false;
+            recognition.interimResults = false;
+            recognition.lang = 'en-US';
+
+            recognition.onstart = () => {
+                $('micBtn').classList.add('listening');
+                $('msgInput').placeholder = "Listening closely...";
+            };
+
+            recognition.onerror = (e) => {
+                console.error(e);
+                stopSpeechRecognitionEngine();
+            };
+
+            recognition.onend = () => {
+                stopSpeechRecognitionEngine();
+            };
+
+            recognition.onresult = (event) => {
+                const voiceResultText = event.results[0][0].transcript;
+                if (voiceResultText) {
+                    $('msgInput').value += (String($('msgInput').value).endsWith(' ') || !$('msgInput').value ? '' : ' ') + voiceResultText;
+                    updateCounter($('msgInput'));
+                }
+            };
+
+            recognition.start();
+        }
+
+        function stopSpeechRecognitionEngine() {
+            if (recognition) {
+                recognition = null;
+            }
+            $('micBtn').classList.remove('listening');
+            $('msgInput').placeholder = "Type a message or use voice...";
         }
 
         // Complete Chat Session Exporter
@@ -370,7 +454,6 @@
             }
         }
 
-        // Theme Rotation Configuration Switch (Light -> Dark -> Midnight)
         function toggleTheme() {
             const currentTheme = document.body.getAttribute('data-theme') || 'dark';
             let nextTheme = 'light';
@@ -395,7 +478,7 @@
             send();
         }
 
-        // Dynamic Avatar Builder (Includes integrated Edit, Copy, Date, and Profile initialization hooks)
+        // Dynamic Bubble Builder (Handles Tables, Blocks, and Height Collapsing)
         function addMsg(role, text, isFirstReply = false) {
             const welcomeNode = document.querySelector('.welcome');
             if (welcomeNode) welcomeNode.remove();
@@ -404,8 +487,6 @@
             row.className = 'msg-row ' + role;
             
             let clean = text.replace(/Vipul D\. Kadam|Vipul Kadam|Vipul/gi, "DYNVALR");
-            
-            // Dynamically assign initials for users or standard layout icons for AI
             const avatarHtml = role === 'user' ? currentUserName.substring(0, 2) : '<img src="logo.png" width="20" onerror="this.outerHTML=\'🤖\'">';
             
             let contentHTML = '';
@@ -414,7 +495,8 @@
                     const todayStr = new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
                     contentHTML += `<span class="chat-date-stamp">📅 ${todayStr}</span>`;
                 }
-                contentHTML += marked.parse(clean);
+                contentHTML += `<div class="collapsible-content">${marked.parse(clean)}</div>`;
+                contentHTML += `<button class="toggle-expand-btn" onclick="toggleResponseHeight(this)">Show Full Response</button>`;
             } else {
                 contentHTML += `<p class="user-text-p">${clean}</p>`;
             }
@@ -468,9 +550,9 @@
             $('chatInner').appendChild(row);
             
             if (role === 'ai') {
+                // Initialize Code Blocks Custom Syntax Elements
                 row.querySelectorAll('pre').forEach((preBlock) => {
                     const innerCode = preBlock.querySelector('code');
-                    
                     let detectedLang = "code";
                     if (innerCode) {
                         const classList = Array.from(innerCode.classList);
@@ -485,7 +567,6 @@
                     const btn = document.createElement('button');
                     btn.className = 'code-copy-btn';
                     btn.innerText = 'Copy';
-                    
                     btn.onclick = async () => {
                         const codeString = innerCode ? innerCode.innerText : preBlock.innerText;
                         try {
@@ -499,13 +580,38 @@
                         } catch (err) { console.error(err); }
                     };
                     preBlock.appendChild(btn);
-                    
                     if (innerCode) hljs.highlightElement(innerCode);
                 });
+
+                // Check text block height threshold to evaluate collapsible activation
+                setTimeout(() => {
+                    const contentOuter = row.querySelector('.collapsible-content');
+                    const toggleBtn = row.querySelector('.toggle-expand-btn');
+                    if (contentOuter && toggleBtn) {
+                        if (contentOuter.scrollHeight > 380) {
+                            toggleBtn.style.display = 'block';
+                        } else {
+                            contentOuter.style.maxHeight = 'none';
+                        }
+                    }
+                }, 50);
             }
             
             $('chatScroll').scrollTop = $('chatScroll').scrollHeight;
             return row;
+        }
+
+        // Height Expansion Handler
+        function toggleResponseHeight(btnNode) {
+            const contentBlock = btnNode.previousElementSibling;
+            if (contentBlock.classList.contains('expanded')) {
+                contentBlock.classList.remove('expanded');
+                btnNode.innerText = "Show Full Response";
+                contentBlock.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            } else {
+                contentBlock.classList.add('expanded');
+                btnNode.innerText = "Show Less";
+            }
         }
 
         function makeInlineEditable(userRowNode) {
@@ -746,9 +852,9 @@
                             <strong>💡 Brainstorm Ideas</strong>
                             <span>Discover creative software project strategies instantly.</span>
                         </div>
-                        <div class="prompt-card" onclick="runPromptStarter('Rest API Endpoint explanation')">
-                            <strong>📝 Explain Concepts</strong>
-                            <span>Deconstruct complex engineering problems down cleanly.</span>
+                        <div class="prompt-card" onclick="runPromptStarter('Create a comparison table showing the differences between SQL and NoSQL databases.')">
+                            <strong>📊 Data Tables</strong>
+                            <span>Test the brand new markdown grid renderer layout.</span>
                         </div>
                         <div class="prompt-card" onclick="runPromptStarter('📧 Draft a professional follow-up email after a great networking event.')">
                             <strong>📧 Draft Emails</strong>
