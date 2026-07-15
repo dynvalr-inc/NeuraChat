@@ -213,6 +213,11 @@
         @keyframes bounce { 0%, 80%, 100% { transform: scale(0); } 40% { transform: scale(1); } }
         @keyframes slideIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; } }
 
+        /* FLOATING STOP INTERRUPT ACTION */
+        .stop-generation-container { display: none; align-items: center; justify-content: center; width: 100%; margin-bottom: 10px; animation: slideIn 0.2s ease; }
+        .stop-btn { background: #ff4d4d; border: none; border-radius: 20px; color: white; font-family: 'Inter', sans-serif; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; padding: 8px 18px; cursor: pointer; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 12px rgba(255, 77, 77, 0.3); transition: 0.2s ease; }
+        .stop-btn:hover { background: #e03b3b; transform: translateY(-1px); }
+
         /* BOTTOM INPUT PANEL & COUNTERS */
         .input-area { padding: 14px 20px 18px; background: var(--surface); }
         .input-wrapper { max-width: 85%; margin: 0 auto; display: flex; flex-direction: column; gap: 4px; }
@@ -250,7 +255,7 @@
                 <span style="font-size: 14px; font-weight:500;">Theme Mode</span>
                 <button onclick="toggleTheme()" id="themeBtn" style="padding:8px 12px; cursor:pointer; border-radius:8px; border:none; background:var(--accent); color:white; font-weight:600; font-size:12px;">🌙 Dark Mode</button>
             </div>
-            <p style="font-size: 10px; color: var(--muted); margin-top: 25px; text-align: center; opacity: 0.6;">NeuraChat Public Edition v3.0 by DYNVALR</p>
+            <p style="font-size: 10px; color: var(--muted); margin-top: 25px; text-align: center; opacity: 0.6;">NeuraChat Public Edition v3.5 by DYNVALR</p>
         </div>
     </div>
 
@@ -305,6 +310,14 @@
 
         <div class="input-area">
             <div class="input-wrapper">
+                <!-- Floating Stop Interruption Panel -->
+                <div class="stop-generation-container" id="stopGenContainer">
+                    <button class="stop-btn" onclick="triggerAbortGeneration()">
+                        <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><rect x="4" y="4" width="16" height="16" rx="2"/></svg>
+                        Stop Generating
+                    </button>
+                </div>
+
                 <div class="input-box">
                     <textarea id="msgInput" placeholder="Type a message or use voice..." rows="1" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();send();}" oninput="updateCounter(this)"></textarea>
                     
@@ -332,6 +345,10 @@
         let allChats = JSON.parse(localStorage.getItem('neurachat_saved_sessions')) || {};
         let currentUserName = localStorage.getItem('neurachat_username') || 'User';
         let recognition = null;
+        
+        // Generation Architecture Global Controls
+        let isGenerating = false;
+        let globalTimer = null;
 
         function openModal(id) { $(id).style.display = 'flex'; setTimeout(() => $(id).classList.add('active'), 10); }
         function closeModal(id) { $(id).classList.remove('active'); setTimeout(() => $(id).style.display = 'none', 300); }
@@ -473,9 +490,58 @@
         }
 
         function runPromptStarter(promptText) {
+            if (isGenerating) return;
             $('msgInput').value = promptText;
             $('msgInput').focus();
             send();
+        }
+
+        // Setup Markdown Formatting Logic & Copy Tools on Complete Blocks
+        function postProcessBubbleFormatting(row, rawText) {
+            row.querySelectorAll('pre').forEach((preBlock) => {
+                const innerCode = preBlock.querySelector('code');
+                let detectedLang = "code";
+                if (innerCode) {
+                    const classList = Array.from(innerCode.classList);
+                    const langClass = classList.find(c => c.startsWith('language-'));
+                    if (langClass) detectedLang = langClass.replace('language-', '');
+                }
+                const langLabel = document.createElement('div');
+                langLabel.className = 'code-lang-label';
+                langLabel.innerText = detectedLang;
+                preBlock.appendChild(langLabel);
+
+                const btn = document.createElement('button');
+                btn.className = 'code-copy-btn';
+                btn.innerText = 'Copy';
+                btn.onclick = async () => {
+                    const codeString = innerCode ? innerCode.innerText : preBlock.innerText;
+                    try {
+                        await navigator.clipboard.writeText(codeString);
+                        btn.innerText = 'Copied!';
+                        btn.classList.add('copied');
+                        setTimeout(() => {
+                            btn.innerText = 'Copy';
+                            btn.classList.remove('copied');
+                        }, 2000);
+                    } catch (err) { console.error(err); }
+                };
+                preBlock.appendChild(btn);
+                if (innerCode) hljs.highlightElement(innerCode);
+            });
+
+            // Evaluate collapsible view configuration metrics
+            setTimeout(() => {
+                const contentOuter = row.querySelector('.collapsible-content');
+                const toggleBtn = row.querySelector('.toggle-expand-btn');
+                if (contentOuter && toggleBtn) {
+                    if (contentOuter.scrollHeight > 380) {
+                        toggleBtn.style.display = 'block';
+                    } else {
+                        contentOuter.style.maxHeight = 'none';
+                    }
+                }
+            }, 50);
         }
 
         // Dynamic Bubble Builder (Handles Tables, Blocks, and Height Collapsing)
@@ -548,54 +614,7 @@
             }
 
             $('chatInner').appendChild(row);
-            
-            if (role === 'ai') {
-                // Initialize Code Blocks Custom Syntax Elements
-                row.querySelectorAll('pre').forEach((preBlock) => {
-                    const innerCode = preBlock.querySelector('code');
-                    let detectedLang = "code";
-                    if (innerCode) {
-                        const classList = Array.from(innerCode.classList);
-                        const langClass = classList.find(c => c.startsWith('language-'));
-                        if (langClass) detectedLang = langClass.replace('language-', '');
-                    }
-                    const langLabel = document.createElement('div');
-                    langLabel.className = 'code-lang-label';
-                    langLabel.innerText = detectedLang;
-                    preBlock.appendChild(langLabel);
-
-                    const btn = document.createElement('button');
-                    btn.className = 'code-copy-btn';
-                    btn.innerText = 'Copy';
-                    btn.onclick = async () => {
-                        const codeString = innerCode ? innerCode.innerText : preBlock.innerText;
-                        try {
-                            await navigator.clipboard.writeText(codeString);
-                            btn.innerText = 'Copied!';
-                            btn.classList.add('copied');
-                            setTimeout(() => {
-                                btn.innerText = 'Copy';
-                                btn.classList.remove('copied');
-                            }, 2000);
-                        } catch (err) { console.error(err); }
-                    };
-                    preBlock.appendChild(btn);
-                    if (innerCode) hljs.highlightElement(innerCode);
-                });
-
-                // Check text block height threshold to evaluate collapsible activation
-                setTimeout(() => {
-                    const contentOuter = row.querySelector('.collapsible-content');
-                    const toggleBtn = row.querySelector('.toggle-expand-btn');
-                    if (contentOuter && toggleBtn) {
-                        if (contentOuter.scrollHeight > 380) {
-                            toggleBtn.style.display = 'block';
-                        } else {
-                            contentOuter.style.maxHeight = 'none';
-                        }
-                    }
-                }, 50);
-            }
+            if (role === 'ai') postProcessBubbleFormatting(row, text);
             
             $('chatScroll').scrollTop = $('chatScroll').scrollHeight;
             return row;
@@ -615,6 +634,7 @@
         }
 
         function makeInlineEditable(userRowNode) {
+            if (isGenerating) return;
             const textParagraph = userRowNode.querySelector('.user-text-p');
             if (!textParagraph) return;
             
@@ -684,6 +704,7 @@
         }
 
         async function regenerateLastAIResponse() {
+            if (isGenerating) return;
             const innerContainer = $('chatInner');
             if (innerContainer.children.length < 2) return; 
 
@@ -703,12 +724,129 @@
             executeBackendChatRequest(lastUserPrompt);
         }
 
+        // Interruption Trigger Hook
+        function triggerAbortGeneration() {
+            if (!isGenerating) return;
+            
+            // Kill active timing engines
+            if (globalTimer) clearInterval(globalTimer);
+            isGenerating = false;
+            $('stopGenContainer').style.display = 'none';
+            
+            // Clean up the typing block
+            const innerContainer = $('chatInner');
+            const loadingRow = document.getElementById('loadingRowNode');
+            if (loadingRow) loadingRow.remove();
+
+            // Handle partially rendered blocks
+            const blocks = innerContainer.querySelectorAll('.msg-row.ai');
+            if (blocks.length > 0) {
+                const targetTextarea = blocks[blocks.length - 1].querySelector('.collapsible-content');
+                if (targetTextarea && targetTextarea.innerHTML.includes('...')) {
+                    // Save whatever words were streamed before stopping
+                    let stopContent = targetTextarea.innerText || "Generation halted by user.";
+                    history.push({ role: 'assistant', content: stopContent });
+                    allChats[currentChatId].messages.push({ role: 'ai', content: stopContent });
+                    saveToLocalStorage();
+                    return;
+                }
+            }
+            
+            addMsg('ai', "🛑 Generation halted successfully.");
+        }
+
+        // Advanced Text Streaming Engine Blueprint Emulator
+        function runSimulatedTextStream(aiMessageText, isFirstAI) {
+            const welcomeNode = document.querySelector('.welcome');
+            if (welcomeNode) welcomeNode.remove();
+
+            const row = document.createElement('div');
+            row.className = 'msg-row ai';
+            
+            let scrubbedContent = aiMessageText.replace(/Vipul D\. Kadam|Vipul Kadam|Vipul/gi, "DYNVALR");
+            
+            let initialStructure = '';
+            if (isFirstAI) {
+                const todayStr = new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+                initialStructure += `<span class="chat-date-stamp">📅 ${todayStr}</span>`;
+            }
+            initialStructure += `<div class="collapsible-content"></div>`;
+            initialStructure += `<button class="toggle-expand-btn" onclick="toggleResponseHeight(this)">Show Full Response</button>`;
+            
+            row.innerHTML = `<div class="av"><img src="logo.png" width="20" onerror="this.outerHTML='🤖'"></div><div class="bubble">${initialStructure}</div>`;
+            
+            $('chatInner').appendChild(row);
+            const textDestinationNode = row.querySelector('.collapsible-content');
+            
+            // Split up string words array metrics
+            const tokens = scrubbedContent.split(/(\s+)/);
+            let index = 0;
+            let currentAccumulatedString = "";
+            
+            // Start rapid interval engine frame ticks
+            globalTimer = setInterval(() => {
+                if (!isGenerating) {
+                    clearInterval(globalTimer);
+                    return;
+                }
+                
+                if (index < tokens.length) {
+                    currentAccumulatedString += tokens[index];
+                    textDestinationNode.innerHTML = marked.parse(currentAccumulatedString);
+                    index++;
+                    $('chatScroll').scrollTop = $('chatScroll').scrollHeight;
+                } else {
+                    // Generation Complete Lifecycle
+                    clearInterval(globalTimer);
+                    isGenerating = false;
+                    $('stopGenContainer').style.display = 'none';
+                    
+                    // Hook operational control triggers back up
+                    postProcessBubbleFormatting(row, scrubbedContent);
+                    
+                    // Add control actions
+                    const actionContainer = document.createElement('div');
+                    actionContainer.className = 'msg-actions-container';
+                    
+                    const copyBtn = document.createElement('button');
+                    copyBtn.className = 'msg-action-btn';
+                    copyBtn.innerText = 'Copy';
+                    copyBtn.onclick = () => {
+                        navigator.clipboard.writeText(scrubbedContent);
+                        copyBtn.innerText = 'Copied!';
+                        setTimeout(() => copyBtn.innerText = 'Copy', 2000);
+                    };
+
+                    const regenBtn = document.createElement('button');
+                    regenBtn.className = 'msg-action-btn';
+                    regenBtn.innerText = 'Regenerate';
+                    regenBtn.onclick = () => regenerateLastAIResponse();
+
+                    actionContainer.appendChild(copyBtn);
+                    actionContainer.appendChild(regenBtn);
+                    row.appendChild(actionContainer);
+                    
+                    // Save history logs downstream
+                    history.push({role:'assistant', content: scrubbedContent});
+                    allChats[currentChatId].messages.push({ role: 'ai', content: scrubbedContent });
+                    saveToLocalStorage();
+                }
+            }, 18); // Fast typing pace execution speed hook
+        }
+
         async function executeBackendChatRequest(promptText) {
+            if(isGenerating) return;
+            isGenerating = true;
+            
             const isFirstAI = (history.length === 0);
             history.push({ role: 'user', content: promptText });
 
+            // Display "Stop Generating" Action Float Panel
+            $('stopGenContainer').style.display = 'flex';
+
             const loadingRow = document.createElement('div');
             loadingRow.className = 'msg-row ai';
+            loadingRow.id = 'loadingRowNode';
             loadingRow.innerHTML = `<div class="av"><img src="logo.png" width="20" onerror="this.outerHTML='🤖'"></div><div class="bubble"><div class="typing-container" style="display: flex; align-items: center; gap: 8px; white-space: nowrap;"><span id="loadText" style="font-size: 13px; font-style: italic; opacity: 0.8;">NeuraChat is waking up backend...</span><span class="typing" style="display: flex; gap: 3px; align-items: center;"><span></span><span></span><span></span></span></div></div>`;
             $('chatInner').appendChild(loadingRow);
             $('chatScroll').scrollTop = $('chatScroll').scrollHeight;
@@ -720,6 +858,9 @@
                     body: JSON.stringify({ userMessage: promptText, chatHistory: history.slice(0, -1) })
                 });
                 
+                // If the prompt generation loop was aborted mid-flight by the interface button
+                if (!isGenerating) return;
+                
                 loadingRow.remove(); 
                 
                 let reply = "";
@@ -728,20 +869,23 @@
                 else if (data && data.choices && data.choices[0] && data.choices[0].message) reply = data.choices[0].message.content;
                 
                 if (reply) {
-                    addMsg('ai', reply, isFirstAI);
-                    history.push({role:'assistant', content:reply});
-                    allChats[currentChatId].messages.push({ role: 'ai', content: reply });
-                    saveToLocalStorage();
+                    runSimulatedTextStream(reply, isFirstAI);
                 } else {
+                    isGenerating = false;
+                    $('stopGenContainer').style.display = 'none';
                     addMsg('ai', "⚠️ Error: Received an empty response from the server.");
                 }
             } catch(e) { 
+                if (!isGenerating) return;
+                isGenerating = false;
+                $('stopGenContainer').style.display = 'none';
                 loadingRow.remove();
                 addMsg('ai', `❌ Connection Failed: ${e.message}.`);
             }
         }
 
         async function send() {
+            if(isGenerating) return;
             const input = $('msgInput');
             const text = input.value.trim();
             if(!text) return;
@@ -777,7 +921,7 @@
                 const btn = document.createElement('button');
                 btn.className = 'chat-item-btn';
                 btn.innerText = allChats[id].title || 'Untitled Chat';
-                btn.onclick = () => loadChat(id);
+                btn.onclick = () => { if(!isGenerating) loadChat(id); };
                 
                 const del = document.createElement('button');
                 del.className = 'delete-chat-btn';
@@ -794,6 +938,7 @@
         }
 
         function loadChat(id) {
+            if (isGenerating) return;
             currentChatId = id;
             $('chatInner').innerHTML = '';
             history = [];
@@ -818,6 +963,7 @@
         }
 
         function deleteChat(id) {
+            if (isGenerating) return;
             if (confirm("Are you sure you want to delete this chat session?")) {
                 delete allChats[id];
                 if (currentChatId === id) {
@@ -830,6 +976,7 @@
         }
 
         function createNewChat() {
+            if (isGenerating) return;
             currentChatId = null;
             history = [];
             showWelcomeScreen();
