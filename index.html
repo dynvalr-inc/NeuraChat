@@ -49,8 +49,13 @@
         .sidebar { width: 260px; background: var(--sidebar); border-right: 1px solid var(--border); display: flex; flex-direction: column; padding: 15px; flex-shrink: 0; transition: 0.3s ease; }
         .sidebar.collapsed { margin-left: -260px; }
 
-        .new-chat-btn { width: 100%; padding: 12px; background: var(--card); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-family: 'Syne', sans-serif; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 20px; transition: background 0.2s; }
+        .new-chat-btn { width: 100%; padding: 12px; background: var(--card); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-family: 'Syne', sans-serif; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 12px; transition: background 0.2s; }
         .new-chat-btn:hover { background: var(--accent); color: white; }
+
+        /* FEATURE 1: SEARCH BAR STYLE */
+        .search-wrapper { position: relative; margin-bottom: 15px; }
+        .sidebar-search { width: 100%; padding: 8px 12px; background: rgba(0,0,0,0.15); border: 1px solid var(--border); border-radius: 6px; color: var(--text); font-size: 13px; outline: none; }
+        [data-theme="light"] .sidebar-search { background: rgba(255,255,255,0.3); }
 
         .chat-list-title { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); margin-bottom: 10px; font-weight: 700; }
         .chat-history { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; }
@@ -110,7 +115,7 @@
         /* MODALS & INPUTS */
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); display: none; align-items: center; justify-content: center; z-index: 1000; opacity: 0; transition: opacity 0.3s ease; }
         .modal-overlay.active { display: flex; opacity: 1; }
-        .modal { background: var(--modal-bg); padding: 25px; border-radius: 16px; width: 380px; box-shadow: 0 20px 40px rgba(0,0,0,0.4); border: 1px solid var(--border); transform: scale(0.8); transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); color: var(--text); max-height: 85dvh; overflow-y: auto; }
+        .modal { background: var(--modal-bg); padding: 25px; border-radius: 16px; width: 420px; box-shadow: 0 20px 40px rgba(0,0,0,0.4); border: 1px solid var(--border); transform: scale(0.8); transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); color: var(--text); max-height: 85dvh; overflow-y: auto; }
         .modal-overlay.active .modal { transform: scale(1); }
         .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; font-family: 'Syne', sans-serif; }
         .close-modal { background: none; border: none; font-size: 24px; cursor: pointer; color: var(--text); }
@@ -120,12 +125,15 @@
         .modal-input { width: 100%; padding: 10px; background: var(--card); border: 1px solid var(--border); border-radius: 8px; color: var(--text); outline: none; font-family: 'Inter', sans-serif; }
         .modal-input:focus { border-color: var(--accent); }
 
-        /* CUSTOM PROMPT DRAWER LIBRARY */
-        .prompt-lib-grid { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; }
-        .prompt-lib-item { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 10px; cursor: pointer; transition: 0.2s; text-align: left; }
+        /* FEATURE 3: CUSTOM PROMPT LIBRARY DRAWER & CREATOR */
+        .custom-prompt-box { border: 1px dashed var(--border); padding: 12px; border-radius: 8px; margin-bottom: 15px; background: rgba(0,0,0,0.05); }
+        .prompt-lib-grid { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; max-height: 200px; overflow-y: auto; padding-right: 4px; }
+        .prompt-lib-item { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 10px; cursor: pointer; transition: 0.2s; text-align: left; position: relative; }
         .prompt-lib-item:hover { border-color: var(--accent); transform: translateY(-1px); }
-        .prompt-lib-item strong { display: block; font-size: 13px; color: var(--accent); font-family: 'Syne', sans-serif; margin-bottom: 2px; }
+        .prompt-lib-item strong { display: block; font-size: 13px; color: var(--accent); font-family: 'Syne', sans-serif; margin-bottom: 2px; padding-right: 25px; }
         .prompt-lib-item p { font-size: 11.5px; opacity: 0.85; line-height: 1.3; }
+        .delete-prompt-btn { position: absolute; top: 8px; right: 8px; background: none; border: none; color: #ff4d4d; cursor: pointer; font-size: 14px; opacity: 0.5; }
+        .delete-prompt-btn:hover { opacity: 1; }
 
         /* MAIN CONTENT */
         .main-content { flex: 1; display: flex; flex-direction: column; height: 100%; min-width: 0; }
@@ -257,31 +265,25 @@
                 <input type="text" id="usernameInput" class="modal-input" placeholder="Enter name..." oninput="updateProfileName(this.value)">
             </div>
             
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 25px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 20px;">
                 <span style="font-size: 13px; font-weight:600; color:var(--muted); text-transform:uppercase;">Theme Mode</span>
                 <button onclick="toggleTheme()" id="themeBtn" style="padding:8px 12px; cursor:pointer; border-radius:8px; border:none; background:var(--accent); color:white; font-weight:600; font-size:12px;">🌙 Dark Mode</button>
             </div>
 
             <hr style="border:0; border-top:1px solid var(--border); margin-bottom:15px;">
             
-            <!-- FEATURE 2: PROMPT LIBRARY DRAWER ENTRY -->
+            <!-- FEATURE 3: CUSTOM PRESET CREATOR INTERFACE -->
             <div class="modal-header" style="margin-bottom:10px;"><h4>Custom Prompt Library</h4></div>
-            <div class="prompt-lib-grid">
-                <div class="prompt-lib-item" onclick="injectPresetPrompt('🛠️ [CODE DEBUGGER] Analyze this block of code for syntax errors, logical vulnerabilities, and performance bugs. Provide clean refactored code with brief explanations:')">
-                    <strong>🛠️ Code Debugger Blueprint</strong>
-                    <p>Forces the AI to systematically scan errors and provide optimized code syntax blocks.</p>
-                </div>
-                <div class="prompt-lib-item" onclick="injectPresetPrompt('📚 [COMPLEX EXPLAINER] Act as an elite technical educator. Explain the following concept in simple, conversational terms using a creative real-world analogy:')">
-                    <strong>📚 ELI5 Concept Explainer</strong>
-                    <p>Breaks down advanced structures into completely simple, intuitive terms.</p>
-                </div>
-                <div class="prompt-lib-item" onclick="injectPresetPrompt('🌍 [TRANSLATION MATRIX] Act as a dual-language translator. Translate the following text cleanly into elegant Hindi and professional Spanish, keeping technical variables intact:')">
-                    <strong>🌍 Dual-Language Translator</strong>
-                    <p>Converts input content into Hindi and Spanish while securing variable codes.</p>
-                </div>
+            
+            <div class="custom-prompt-box">
+                <input type="text" id="newPromptTitle" class="modal-input" placeholder="Prompt Title (e.g., Code Debugger)" style="margin-bottom:8px; font-size:12px;">
+                <textarea id="newPromptText" class="modal-input" placeholder="Enter custom system command blueprint instructions..." rows="2" style="font-size:12px; resize:none;"></textarea>
+                <button onclick="saveCustomPromptTemplate()" style="margin-top:8px; width:100%; padding:6px; border:none; border-radius:6px; background:var(--accent); color:white; font-weight:bold; font-size:12px; cursor:pointer;">+ Save Custom Strategy Blueprint</button>
             </div>
 
-            <p style="font-size: 10px; color: var(--muted); margin-top: 25px; text-align: center; opacity: 0.6;">NeuraChat Pro Edition v4.0 by DYNVALR</p>
+            <div class="prompt-lib-grid" id="promptLibraryContainer"></div>
+
+            <p style="font-size: 10px; color: var(--muted); margin-top: 25px; text-align: center; opacity: 0.6;">NeuraChat Pro Edition v5.0 by DYNVALR</p>
         </div>
     </div>
 
@@ -297,11 +299,16 @@
     <!-- Navigation Drawer / Sidebar -->
     <div class="sidebar" id="sidebar">
         <button class="new-chat-btn" onclick="createNewChat()"><strong>+</strong> New Chat</button>
+        
+        <!-- FEATURE 1: SEARCH FILTER INPUT BAR -->
+        <div class="search-wrapper">
+            <input type="text" id="sidebarSearch" class="sidebar-search" placeholder="🔍 Search chat logs..." oninput="filterHistoryLogs(this.value)">
+        </div>
+
         <div class="chat-list-title">Recent History</div>
         <div class="chat-history" id="chatHistory"></div>
         
         <div class="sidebar-footer">
-            <!-- FEATURE 3: HIGH END HTML EXPORT ENGINE BUTTON -->
             <button class="footer-btn" onclick="exportChatLogPremiumHTML()">
                 <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M19 12v7H5v-7H3v7c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2v-7h-2zm-6 .67l2.59-2.58L17 11.5l-5 5-5-5 1.41-1.41L11 12.67V3h2v9.67z"/></svg>
                 Premium Export (HTML)
@@ -375,8 +382,20 @@
         
         let isGenerating = false;
         let globalTimer = null;
+        let activeSearchQuery = "";
 
-        function openModal(id) { $(id).style.display = 'flex'; setTimeout(() => $(id).classList.add('active'), 10); }
+        // Default templates if local presets are empty
+        let customPromptsList = JSON.parse(localStorage.getItem('neurachat_custom_prompts')) || [
+            { title: "🛠️ Code Debugger Blueprint", text: "🛠️ [CODE DEBUGGER] Analyze this block of code for syntax errors, logical vulnerabilities, and performance bugs. Provide clean refactored code with brief explanations:" },
+            { title: "📚 ELI5 Concept Explainer", text: "📚 [COMPLEX EXPLAINER] Act as an elite technical educator. Explain the following concept in simple, conversational terms using a creative real-world analogy:" },
+            { title: "🌍 Dual-Language Translator", text: "🌍 [TRANSLATION MATRIX] Act as a dual-language translator. Translate the following text cleanly into elegant Hindi and professional Spanish, keeping technical variables intact:" }
+        ];
+
+        function openModal(id) { 
+            $(id).style.display = 'flex'; 
+            setTimeout(() => $(id).classList.add('active'), 10); 
+            if(id === 'settingsModal') renderCustomPromptsLibrary();
+        }
         function closeModal(id) { $(id).classList.remove('active'); setTimeout(() => $(id).style.display = 'none', 300); }
         function toggleSidebar() { $('sidebar').classList.toggle('collapsed'); }
 
@@ -403,7 +422,82 @@
             });
         }
 
-        // FEATURE 2 ENGINE: PROMPT INJECTOR HOOK
+        // FEATURE 1: SIDEBAR HISTORY SEARCH ENGINE HOOK
+        function filterHistoryLogs(query) {
+            activeSearchQuery = query.toLowerCase().trim();
+            renderSidebarHistory();
+        }
+
+        // FEATURE 2: NATIVE TTS AUDIO READER ENGINE HOOK
+        function speakResponseText(btnNode, textToSpeak) {
+            if ('speechSynthesis' in window) {
+                // If already speaking, cancel it immediately (acts as a toggle button)
+                if (window.speechSynthesis.speaking) {
+                    window.speechSynthesis.cancel();
+                    btnNode.innerText = "🗣️ Speak";
+                    return;
+                }
+
+                // Scrub out code blocks entirely from speech output so it doesn't read brackets aloud
+                let scrubbedSpeechText = textToSpeak.replace(/```[\s\S]*?```/g, '[Code block skipped in voice output]');
+                
+                const speechUtterance = new SpeechSynthesisUtterance(scrubbedSpeechText);
+                speechUtterance.onstart = () => btnNode.innerText = "🛑 Stop Voice";
+                speechUtterance.onend = () => btnNode.innerText = "🗣️ Speak";
+                speechUtterance.onerror = () => btnNode.innerText = "🗣️ Speak";
+
+                window.speechSynthesis.speak(speechUtterance);
+            } else {
+                alert("Your browser does not support Speech Synthesis text-to-speech output.");
+            }
+        }
+
+        // FEATURE 3: DYNAMIC PROMPT BLUEPRINT STORAGE METHODS
+        function renderCustomPromptsLibrary() {
+            const container = $('promptLibraryContainer');
+            container.innerHTML = '';
+            
+            customPromptsList.forEach((prompt, idx) => {
+                const item = document.createElement('div');
+                item.className = 'prompt-lib-item';
+                item.setAttribute('onclick', `injectPresetPrompt(\`${prompt.text.replace(/`/g, '\\`').replace(/\${/g, '\\${')}\`)`);
+                
+                item.innerHTML = `
+                    <strong>${prompt.title}</strong>
+                    <p>${prompt.text.substring(0, 80)}...</p>
+                    <button class="delete-prompt-btn" onclick="deleteCustomPromptTemplate(event, ${idx})">×</button>
+                `;
+                container.appendChild(item);
+            });
+        }
+
+        function saveCustomPromptTemplate() {
+            const titleInput = $('newPromptTitle');
+            const textInput = $('newPromptText');
+            
+            const title = titleInput.value.trim();
+            const text = textInput.value.trim();
+            
+            if(!title || !text) {
+                alert("Please complete both input blocks to save a strategy template blueprint.");
+                return;
+            }
+            
+            customPromptsList.push({ title, text });
+            localStorage.setItem('neurachat_custom_prompts', JSON.stringify(customPromptsList));
+            
+            titleInput.value = '';
+            textInput.value = '';
+            renderCustomPromptsLibrary();
+        }
+
+        function deleteCustomPromptTemplate(event, index) {
+            event.stopPropagation(); // Avoid triggering prompt injection hook click
+            customPromptsList.splice(index, 1);
+            localStorage.setItem('neurachat_custom_prompts', JSON.stringify(customPromptsList));
+            renderCustomPromptsLibrary();
+        }
+
         function injectPresetPrompt(promptTemplateText) {
             if (isGenerating) return;
             closeModal('settingsModal');
@@ -463,7 +557,7 @@
             $('msgInput').placeholder = "Type a message or use voice...";
         }
 
-        // FEATURE 3 ENGINE: LUXURY INTERACTIVE HTML COMPILATION LOG EXPORTER
+        // Luxury Interactive HTML Export Engine
         function exportChatLogPremiumHTML() {
             if (!currentChatId || !allChats[currentChatId] || allChats[currentChatId].messages.length === 0) {
                 alert("There are no active messages in this chat session to export.");
@@ -473,7 +567,6 @@
             const activeSession = allChats[currentChatId];
             const timestampFormatted = new Date().toLocaleString();
             
-            // Build absolute masterpiece standalone page layout template injection
             let htmlDocumentContent = `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -535,9 +628,9 @@
             document.body.removeChild(linkElement);
         }
 
-        // Complete Local System Wipe Hook
         function clearAllData() {
             if (confirm("🚨 DANGER ZONE: This will securely delete all your chats, themes, and personalized user settings permanently. Are you sure?")) {
+                if ('speechSynthesis' in window) window.speechSynthesis.cancel();
                 localStorage.clear();
                 allChats = {};
                 currentChatId = null;
@@ -577,7 +670,6 @@
             send();
         }
 
-        // Setup Markdown Formatting Logic & Copy Tools on Complete Blocks
         function postProcessBubbleFormatting(row, rawText) {
             row.querySelectorAll('pre').forEach((preBlock) => {
                 const innerCode = preBlock.querySelector('code');
@@ -674,6 +766,12 @@
                 actionContainer.appendChild(copyBtn);
                 row.appendChild(actionContainer);
             } else if (role === 'ai') {
+                // FEATURE 2 EXTRA ACTION BADGE: TEXT-TO-SPEECH TOGGLE BUTTON
+                const voiceBtn = document.createElement('button');
+                voiceBtn.className = 'msg-action-btn';
+                voiceBtn.innerText = '🗣️ Speak';
+                voiceBtn.onclick = () => speakResponseText(voiceBtn, text);
+
                 const copyBtn = document.createElement('button');
                 copyBtn.className = 'msg-action-btn';
                 copyBtn.innerText = 'Copy';
@@ -688,6 +786,7 @@
                 regenBtn.innerText = 'Regenerate';
                 regenBtn.onclick = () => regenerateLastAIResponse();
 
+                actionContainer.appendChild(voiceBtn);
                 actionContainer.appendChild(copyBtn);
                 actionContainer.appendChild(regenBtn);
                 row.appendChild(actionContainer);
@@ -758,6 +857,7 @@
         }
 
         async function submitInlineEdit(userRowNode, newText) {
+            if ('speechSynthesis' in window) window.speechSynthesis.cancel();
             const innerContainer = $('chatInner');
             const targetIndex = Array.from(innerContainer.children).indexOf(userRowNode);
             if (targetIndex === -1) return;
@@ -784,6 +884,8 @@
 
         async function regenerateLastAIResponse() {
             if (isGenerating) return;
+            if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+            
             const innerContainer = $('chatInner');
             if (innerContainer.children.length < 2) return; 
 
@@ -829,7 +931,6 @@
             addMsg('ai', "🛑 Generation halted successfully.");
         }
 
-        // Advanced Text Streaming Engine Blueprint
         function runSimulatedTextStream(aiMessageText, isFirstAI) {
             const welcomeNode = document.querySelector('.welcome');
             if (welcomeNode) welcomeNode.remove();
@@ -877,6 +978,11 @@
                     const actionContainer = document.createElement('div');
                     actionContainer.className = 'msg-actions-container';
                     
+                    const voiceBtn = document.createElement('button');
+                    voiceBtn.className = 'msg-action-btn';
+                    voiceBtn.innerText = '🗣️ Speak';
+                    voiceBtn.onclick = () => speakResponseText(voiceBtn, scrubbedContent);
+
                     const copyBtn = document.createElement('button');
                     copyBtn.className = 'msg-action-btn';
                     copyBtn.innerText = 'Copy';
@@ -891,6 +997,7 @@
                     regenBtn.innerText = 'Regenerate';
                     regenBtn.onclick = () => regenerateLastAIResponse();
 
+                    actionContainer.appendChild(voiceBtn);
                     actionContainer.appendChild(copyBtn);
                     actionContainer.appendChild(regenBtn);
                     row.appendChild(actionContainer);
@@ -952,6 +1059,8 @@
 
         async function send() {
             if(isGenerating) return;
+            if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+            
             const input = $('msgInput');
             const text = input.value.trim();
             if(!text) return;
@@ -976,17 +1085,27 @@
             renderSidebarHistory();
         }
 
+        // FEATURE 1 & FEATURE 3 INTEGRATED SIDEBAR RENDER LAYER
         function renderSidebarHistory() {
             const historyContainer = $('chatHistory');
             historyContainer.innerHTML = '';
             
             Object.keys(allChats).sort((a, b) => b.split('_')[1] - a.split('_')[1]).forEach(id => {
+                const session = allChats[id];
+                const sessionTitle = session.title || 'Untitled Chat';
+                
+                // Scan content if search matches inside messages as well
+                const fullTextDump = (sessionTitle + " " + session.messages.map(m => m.content).join(" ")).toLowerCase();
+                
+                // If query exists and isn't found, drop render entry instantly
+                if (activeSearchQuery && !fullTextDump.includes(activeSearchQuery)) return;
+
                 const item = document.createElement('div');
                 item.className = 'chat-history-item' + (id === currentChatId ? ' active' : '');
                 
                 const btn = document.createElement('button');
                 btn.className = 'chat-item-btn';
-                btn.innerText = allChats[id].title || 'Untitled Chat';
+                btn.innerText = sessionTitle;
                 btn.onclick = () => { if(!isGenerating) loadChat(id); };
                 
                 const del = document.createElement('button');
@@ -1005,6 +1124,8 @@
 
         function loadChat(id) {
             if (isGenerating) return;
+            if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+            
             currentChatId = id;
             $('chatInner').innerHTML = '';
             history = [];
@@ -1031,6 +1152,7 @@
         function deleteChat(id) {
             if (isGenerating) return;
             if (confirm("Are you sure you want to delete this chat session?")) {
+                if ('speechSynthesis' in window) window.speechSynthesis.cancel();
                 delete allChats[id];
                 if (currentChatId === id) {
                     currentChatId = null;
@@ -1043,6 +1165,7 @@
 
         function createNewChat() {
             if (isGenerating) return;
+            if ('speechSynthesis' in window) window.speechSynthesis.cancel();
             currentChatId = null;
             history = [];
             showWelcomeScreen();
