@@ -355,10 +355,43 @@
                 <i class="fa-solid fa-bars" style="color: var(--text); font-size: 20px;"></i>
             </button>
             <span class="brand">NeuraChat <span>Core</span> <small style="font-size:10px; opacity:0.6; font-weight: bold;">by DYNVALR</small></span>
+            
+            <!-- 🔥 POWER-UP 1: BRAIN MATRIX AND STUDIO PANEL SWITCHERS -->
+            <div style="margin-left: auto; display: flex; align-items: center; gap: 10px;">
+                <select id="personaSelect" style="background: var(--glass-card); border: 1px solid var(--border); color: var(--text); padding: 6px 10px; border-radius: 8px; font-family: 'Inter', sans-serif; font-size: 12px; font-weight: 600; outline: none; cursor: pointer; backdrop-filter: blur(5px);">
+                    <option value="default">🌌 Core Intelligence</option>
+                    <option value="coder">🛠️ Elite Developer</option>
+                    <option value="sarcastic">🎭 Sarcastic Companion</option>
+                </select>
+                <button id="modeToggleBtn" onclick="toggleStudioMode()" style="background: var(--accent); border: none; color: white; padding: 6px 12px; border-radius: 8px; font-family: 'Syne', sans-serif; font-size: 12px; font-weight: 700; cursor: pointer; transition: 0.2s; box-shadow: 0 4px 10px rgba(189,102,255,0.2);">🎨 Image Studio</button>
+            </div>
         </div>
 
+        <!-- Classic Chat Thread Window -->
         <div class="chat-scroll" id="chatScroll">
             <div class="chat-inner" id="chatInner"></div>
+        </div>
+
+        <!-- 🔥 POWER-UP 3: NEURAL ART STUDIO GENERATION CANVAS INTERFACE -->
+        <div class="chat-scroll" id="imageStudioWorkspace" style="display: none; padding: 28px 20px;">
+            <div class="chat-inner" style="max-width: 600px; text-align: center; margin: 0 auto; display: flex; flex-direction: column; gap: 20px;">
+                <h2 style="font-family: 'Syne', sans-serif; font-weight: 700; letter-spacing: -0.5px;">Neural Art Studio</h2>
+                <p style="font-size: 13px; color: var(--muted); line-height: 1.5;">Manifest high-resolution synthetic text-to-image artwork processing units straight to your frontend screen window layers.</p>
+                
+                <div id="artRenderOutput" style="width: 100%; aspect-ratio: 1; background: rgba(0,0,0,0.2); border: 1px dashed var(--border); border-radius: 14px; display: flex; align-items: center; justify-content: center; color: var(--muted); font-size: 14px; overflow: hidden; position: relative;">
+                    <i class="fa-regular fa-image" style="font-size: 48px; opacity: 0.25;"></i>
+                </div>
+                
+                <div class="input-box" style="background: var(--glass-card); border-radius: 16px; padding: 12px 16px; border: 1px solid var(--border);">
+                    <textarea id="imagePromptInput" placeholder="Describe the masterpiece you want to manifest..." rows="1" style="font-size:14px;"></textarea>
+                    <button class="send-btn" onclick="generateAIArt()" style="padding: 10px 18px; color: white; font-family: 'Syne', sans-serif; font-weight: 700; font-size: 13px; border-radius: 12px; display: flex; align-items: center; gap: 8px;">
+                        <i class="fa-solid fa-wand-magic-sparkles"></i> Manifest
+                    </button>
+                </div>
+                <button id="downloadArtBtn" style="display: none; margin: 0 auto; background: var(--glass-card); border: 1px solid var(--border); color: var(--text); font-size: 12px; font-weight: 600; padding: 8px 16px; border-radius: 8px; cursor: pointer; transition: 0.2s;">
+                    <i class="fa-solid fa-download"></i> Save Masterpiece
+                </button>
+            </div>
         </div>
 
         <div class="input-area glass-panel">
@@ -395,7 +428,9 @@
                         </button>
                     </div>
                 </div>
-                <div class="input-counter" id="inputCounter">0 words | 0 characters</div>
+                
+                <!-- 🔥 POWER-UP 2: DETAILED LIVE CALCULATOR TOKEN METRICS PANEL -->
+                <div class="input-counter" id="inputCounter">0 words | 0 characters | ~0 Tokens | Est: $0.00000</div>
             </div>
             <p style="text-align: center; font-size: 11px; margin-top: 8px; color: var(--muted); font-weight: bold;">© 2026 DYNVALR | All Rights Reserved</p>
         </div>
@@ -415,6 +450,7 @@
         let globalTimer = null;
         let activeSearchQuery = "";
         let pendingFileContentPayload = ""; 
+        let currentMode = "chat"; // Tracks active workspace layout frame matrix
 
         // IMMERSIVE WEB AUDIO SYNTHESIZER FEEDBACK PARADIGM
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -492,13 +528,19 @@
         function closeModal(id) { $(id).classList.remove('active'); setTimeout(() => $(id).style.display = 'none', 300); }
         function toggleSidebar() { $('sidebar').classList.toggle('collapsed'); }
 
+        // 🔥 POWER-UP 2 LOGIC: TRACK PREMIUM COMPLETED ESTIMATION MATRIX METRICS
         function updateCounter(textarea) {
             textarea.style.height = 'auto';
             textarea.style.height = textarea.scrollHeight + 'px';
             const text = textarea.value.trim();
             const charCount = text.length;
             const wordCount = text === "" ? 0 : text.split(/\s+/).length;
-            $('inputCounter').innerText = `${wordCount} words | ${charCount} characters`;
+            
+            // Advanced frontend estimation equations
+            const estimatedTokens = Math.ceil(wordCount * 1.35) + Math.ceil(charCount * 0.08);
+            const estimatedCost = (estimatedTokens * 0.0000015).toFixed(5);
+            
+            $('inputCounter').innerText = `${wordCount} words | ${charCount} characters | ~${estimatedTokens} Tokens | Est: $${estimatedCost}`;
         }
 
         function updateProfileName(newName) {
@@ -669,6 +711,7 @@
             }
         }
 
+        // Toggles local system styles loop themes
         function toggleTheme() {
             const currentTheme = document.body.getAttribute('data-theme') || 'dark';
             let nextTheme = 'light'; let buttonLabel = '☀️ Light Mode';
@@ -731,7 +774,7 @@
             
             let clean = text.replace(/Vipul D\. Kadam|Vipul Kadam|Vipul/gi, "DYNVALR");
             
-            // 🔥 HTML INJECTION SECURITY PATCH
+            // SECURITY HTML SHIELD PARSER
             if (role === 'user') {
                 clean = clean.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
             }
@@ -771,7 +814,6 @@
                 const regenBtn = document.createElement('button'); regenBtn.className = 'msg-action-btn'; regenBtn.innerText = 'Regenerate';
                 regenBtn.onclick = () => regenerateLastAIResponse();
                 
-                // NEW PREVIEW BUTTON
                 const previewBtn = document.createElement('button'); previewBtn.className = 'msg-action-btn'; previewBtn.innerText = 'Preview';
                 previewBtn.style.color = 'var(--accent)'; 
                 previewBtn.onclick = () => previewCode(previewBtn);
@@ -876,7 +918,6 @@
             addMsg('ai', "🛑 Generation halted successfully.");
         }
 
-        // BACKEND CONVERSATION COMPRESSION LOGGER INTERFACE MODULE RULE
         async function runAISidebarAutoSummaryEngine(firstMessageText) {
             try {
                 const responseData = await fetch('https://neurachat-xxy2.onrender.com/chat', {
@@ -942,7 +983,6 @@
                     const regenBtn = document.createElement('button'); regenBtn.className = 'msg-action-btn'; regenBtn.innerText = 'Regenerate';
                     regenBtn.onclick = () => regenerateLastAIResponse();
                     
-                    // NEW PREVIEW BUTTON
                     const previewBtn = document.createElement('button'); previewBtn.className = 'msg-action-btn'; previewBtn.innerText = 'Preview';
                     previewBtn.style.color = 'var(--accent)'; 
                     previewBtn.onclick = () => previewCode(previewBtn);
@@ -961,7 +1001,19 @@
             isGenerating = true;
             const isFirstAI = (history.length === 0);
             const isFirstUserMessageOverall = (allChats[currentChatId].messages.length === 1);
-            history.push({ role: 'user', content: promptText });
+            
+            // 🔥 POWER-UP 1 LOGIC: SYSTEM DIRECTIVE RUNTIME INJECTIONS
+            let finalPromptText = promptText;
+            if (isFirstUserMessageOverall) {
+                const persona = $('personaSelect').value;
+                if (persona === 'coder') {
+                    finalPromptText = "[SYSTEM INSTRUCTION: You are an Elite Developer. Provide highly optimized, cleanly architected code blocks and meticulous framework structural breakdowns. Avoid small talk entirely.]\n\n" + promptText;
+                } else if (persona === 'sarcastic') {
+                    finalPromptText = "[SYSTEM INSTRUCTION: You are a Sarcastic Companion. Respond with sharp, cynical, incredibly witty humor, making light, clean, friendly jabs at the user while answering accurately.]\n\n" + promptText;
+                }
+            }
+            
+            history.push({ role: 'user', content: finalPromptText });
             $('stopGenContainer').style.display = 'flex';
             setNeuralCoreState(true);
 
@@ -975,7 +1027,7 @@
                 const data = await fetchWithRetry('https://neurachat-xxy2.onrender.com/chat', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ userMessage: promptText, chatHistory: history.slice(0, -1) })
+                    body: JSON.stringify({ userMessage: finalPromptText, chatHistory: history.slice(0, -1) })
                 });
                 
                 if (!isGenerating) return;
@@ -1011,7 +1063,7 @@
             }
 
             input.value = '';
-            $('inputCounter').innerText = "0 words | 0 characters";
+            $('inputCounter').innerText = "0 words | 0 characters | ~0 Tokens | Est: $0.00000";
             input.style.height = 'auto';
 
             playSfx('send');
@@ -1112,7 +1164,6 @@
             `;
         }
         
-        // 🔥 NEW LIVE PREVIEW FUNCTIONS
         function previewCode(element) {
             const row = element.closest('.msg-row');
             const codeBlocks = row.querySelectorAll('pre code');
@@ -1138,7 +1189,74 @@
 
         function closePreview() {
             closeModal('previewModal');
-            setTimeout(() => { $('previewFrame').srcdoc = ''; }, 300); // Clears iframe safely after close animation
+            setTimeout(() => { $('previewFrame').srcdoc = ''; }, 300); 
+        }
+
+        // 🔥 POWER-UP 3 LOGIC: NEURAL ART RENDERING ENGINE CONTROLLERS
+        function toggleStudioMode() {
+            if (isGenerating) return;
+            const chatScroll = $('chatScroll');
+            const studioScroll = $('imageStudioWorkspace');
+            const inputArea = document.querySelector('.input-area');
+            const modeBtn = $('modeToggleBtn');
+            
+            if (currentMode === "chat") {
+                currentMode = "studio";
+                chatScroll.style.display = "none";
+                inputArea.style.display = "none";
+                studioScroll.style.display = "block";
+                modeBtn.innerText = "💬 Open Chat Matrix";
+                modeBtn.style.background = "var(--glass-card)";
+                modeBtn.style.border = "1px solid var(--border)";
+                modeBtn.style.color = "var(--text)";
+            } else {
+                currentMode = "chat";
+                studioScroll.style.display = "none";
+                chatScroll.style.display = "block";
+                inputArea.style.display = "block";
+                modeBtn.innerText = "🎨 Image Studio";
+                modeBtn.style.background = "var(--accent)";
+                modeBtn.style.color = "white";
+                modeBtn.style.border = "none";
+            }
+        }
+
+        function generateAIArt() {
+            const promptInput = $('imagePromptInput');
+            const artText = promptInput.value.trim();
+            if(!artText) { alert("Please input your descriptive layout parameters first!"); return; }
+            
+            playSfx('send');
+            const displayFrame = $('artRenderOutput');
+            displayFrame.innerHTML = `<div class="typing-container" style="display: flex; align-items: center; justify-content: center; height:100%; gap: 8px;"><span style="font-size: 14px; font-style: italic; opacity: 0.8;">Synthesizing text-to-image pixels...</span><span class="typing"><span></span><span></span><span></span></span></div>`;
+            
+            const generatedUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(artText)}?width=1024&height=1024&nologo=true&seed=${Math.floor(Math.random() * 999999)}`;
+            
+            const newImg = new Image();
+            newImg.src = generatedUrl;
+            newImg.style.width = "100%";
+            newImg.style.height = "100%";
+            newImg.style.objectFit = "contain";
+            newImg.style.borderRadius = "12px";
+            
+            newImg.onload = function() {
+                displayFrame.innerHTML = '';
+                displayFrame.appendChild(newImg);
+                playSfx('done');
+                $('downloadArtBtn').style.display = "block";
+                $('downloadArtBtn').onclick = () => {
+                    const link = document.createElement('a');
+                    link.href = generatedUrl;
+                    link.download = `NeuraChat_Art_${Date.now()}.jpg`;
+                    link.target = "_blank";
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                };
+            };
+            newImg.onerror = function() {
+                displayFrame.innerHTML = `<p style="color:#ff4d4d; font-weight:bold;">❌ Error rendering AI artwork framework.</p>`;
+            };
         }
 
         window.onload = () => {
