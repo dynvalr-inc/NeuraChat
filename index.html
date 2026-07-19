@@ -99,7 +99,7 @@
         }
         .sidebar.collapsed { margin-left: -260px; transform: translateX(-260px); }
 
-        .new-chat-btn { width: 100%; padding: 12px; background: var(--glass-card); border-radius: 10px; color: var(--text); font-family: 'Syne', sans-serif; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 15px; transition: 0.2s; }
+        .new-chat-btn { width: 100%; padding: 12px; background: var(--glass-card); border-radius: 10px; color: var(--text); font-family: 'Syne', sans-serif; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 15px; transition: 0.2s; border: none; }
         .new-chat-btn:hover { background: var(--accent); color: white; transform: scale(1.02); }
 
         .search-wrapper { position: relative; margin-bottom: 15px; }
@@ -135,6 +135,10 @@
         .modal-input { width: 100%; padding: 11px; background: var(--glass-card); border: 1px solid var(--border); border-radius: 8px; color: var(--text); outline: none; font-family: 'Inter', sans-serif; }
         .modal-input:focus { border-color: var(--accent); }
 
+        .slider-container { display: flex; align-items: center; gap: 10px; }
+        .slider-container input[type=range] { flex: 1; accent-color: var(--accent); }
+        .slider-container span { font-size: 12px; font-weight: bold; width: 30px; text-align: right; }
+
         .custom-prompt-box { border: 1px dashed var(--border); padding: 12px; border-radius: 10px; margin-bottom: 15px; background: rgba(0,0,0,0.02); }
         .prompt-lib-grid { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; max-height: 180px; overflow-y: auto; }
         .prompt-lib-item { background: var(--glass-card); border: 1px solid var(--border); border-radius: 8px; padding: 10px; cursor: pointer; transition: 0.2s; text-align: left; position: relative; }
@@ -145,14 +149,16 @@
         .delete-prompt-btn:hover { opacity: 1; }
 
         /* MAIN CONTENT ROW */
-        .main-content { flex: 1; display: flex; flex-direction: column; height: 100%; min-width: 0; background: transparent; }
+        .main-content { flex: 1; display: flex; flex-direction: column; height: 100%; min-width: 0; background: transparent; position: relative; }
         .header { display: flex; align-items: center; gap: 12px; padding: 16px 24px; background: var(--glass-bg); border-bottom: 1px solid var(--border); }
         .menu-toggle { background: none; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; }
         .brand { font-family: 'Syne', sans-serif; font-size: 19px; font-weight: 700; letter-spacing: -0.5px; }
         .brand span { color: var(--accent); }
 
-        .chat-scroll { flex: 1; overflow-y: auto; padding: 28px 20px; }
+        .chat-scroll { flex: 1; overflow-y: auto; padding: 28px 20px; position: relative; }
         .chat-inner { max-width: 85%; width: 100%; min-width: 0; margin: 0 auto; display: flex; flex-direction: column; gap: 24px; }
+
+        .scroll-bottom-btn { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); background: var(--accent); color: white; border: none; border-radius: 20px; padding: 8px 16px; font-size: 12px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.3); display: none; z-index: 100; animation: bubbleFlyIn 0.3s ease; }
 
         /* DYNAMIC SPLASH LAYOUT NODE */
         .welcome { text-align: center; padding: 40px 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; margin: auto; max-width: 600px; }
@@ -249,6 +255,12 @@
         /* INPUT AREA HOOKS */
         .input-area { padding: 14px 20px 18px; background: var(--glass-bg); border-top: 1px solid var(--border); }
         .input-wrapper { max-width: 85%; margin: 0 auto; display: flex; flex-direction: column; gap: 4px; }
+        
+        .prompt-chips { display: flex; gap: 8px; max-width: 85%; margin: 0 auto; width: 100%; overflow-x: auto; padding-bottom: 8px; }
+        .prompt-chips::-webkit-scrollbar { height: 0px; }
+        .chip { background: var(--glass-card); border: 1px solid var(--border); padding: 4px 12px; border-radius: 12px; font-size: 11px; font-weight: 600; cursor: pointer; white-space: nowrap; transition: 0.2s; color: var(--text); backdrop-filter: blur(5px); }
+        .chip:hover { background: var(--accent); color: white; border-color: transparent; }
+
         .input-box { display: flex; align-items: flex-end; gap: 10px; background: var(--glass-card); border-radius: 16px; padding: 12px 16px; border: 1px solid var(--border); }
         textarea { flex: 1; background: none; border: none; color: var(--text); font-family: 'Inter', sans-serif; font-size: 14.5px; resize: none; outline: none; max-height: 200px; line-height: 1.5; }
         
@@ -277,6 +289,10 @@
         .canvas-1-1 { aspect-ratio: 1; max-width: 500px; }
         .canvas-16-9 { aspect-ratio: 16/9; width: 100%; }
         .canvas-9-16 { aspect-ratio: 9/16; max-width: 340px; }
+        
+        .filmstrip { display: flex; gap: 10px; margin-top: 15px; width: 100%; overflow-x: auto; padding-bottom: 5px; justify-content: center; }
+        .filmstrip img { height: 60px; width: 60px; object-fit: cover; border-radius: 8px; cursor: pointer; border: 1px solid var(--border); transition: 0.2s; }
+        .filmstrip img:hover { border-color: var(--accent); transform: translateY(-2px); }
 
         .studio-controls-grid {
             display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; width: 100%; margin-bottom: 12px;
@@ -304,8 +320,25 @@
                 <span style="font-size: 12px; font-weight:700; color:var(--muted); text-transform:uppercase;">Core Theme Matrix</span>
                 <button onclick="toggleTheme()" id="themeBtn" style="padding:8px 14px; cursor:pointer; border-radius:8px; border:none; background:var(--accent); color:white; font-weight:700; font-size:12px; box-shadow: 0 4px 10px rgba(189,102,255,0.3);">🌙 Dark Mode</button>
             </div>
-
+            
             <hr style="border:0; border-top:1px solid var(--border); margin-bottom:15px;">
+            <div class="modal-header" style="margin-bottom:10px;"><h4>Voice Synthesis Engine</h4></div>
+            <div class="modal-setting-row">
+                <label>Playback Speed</label>
+                <div class="slider-container">
+                    <input type="range" id="voiceSpeed" min="0.5" max="2" step="0.1" value="1" oninput="$('speedVal').innerText = this.value + 'x'">
+                    <span id="speedVal">1x</span>
+                </div>
+            </div>
+            <div class="modal-setting-row">
+                <label>Voice Pitch</label>
+                <div class="slider-container">
+                    <input type="range" id="voicePitch" min="0" max="2" step="0.1" value="1" oninput="$('pitchVal').innerText = this.value">
+                    <span id="pitchVal">1</span>
+                </div>
+            </div>
+
+            <hr style="border:0; border-top:1px solid var(--border); margin-bottom:15px; margin-top:15px;">
             <div class="modal-header" style="margin-bottom:10px;"><h4>Custom Prompt Library</h4></div>
             
             <div class="custom-prompt-box">
@@ -373,6 +406,7 @@
             <span class="brand">NeuraChat <span>Core</span> <small style="font-size:10px; opacity:0.6; font-weight: bold;">by DYNVALR</small></span>
             
             <div style="margin-left: auto; display: flex; align-items: center; gap: 10px;">
+                <button onclick="quickClearChat()" style="background: var(--glass-card); border: 1px solid var(--border); color: var(--text); padding: 6px 10px; border-radius: 8px; font-family: 'Inter', sans-serif; font-size: 12px; font-weight: 600; cursor: pointer; transition: 0.2s;" title="Wipe screen visually">🧹 Clear</button>
                 <select id="personaSelect" style="background: var(--glass-card); border: 1px solid var(--border); color: var(--text); padding: 6px 10px; border-radius: 8px; font-family: 'Inter', sans-serif; font-size: 12px; font-weight: 600; outline: none; cursor: pointer; backdrop-filter: blur(5px);">
                     <option value="default">🌌 Core Intelligence</option>
                     <option value="coder">🛠️ Elite Developer</option>
@@ -384,6 +418,7 @@
 
         <!-- Chat Thread Window -->
         <div class="chat-scroll" id="chatScroll">
+            <button class="scroll-bottom-btn" id="scrollBottomBtn" onclick="forceScrollBottom()">👇 Scroll to Bottom</button>
             <div class="chat-inner" id="chatInner"></div>
         </div>
 
@@ -398,8 +433,19 @@
                     <i class="fa-regular fa-image" style="font-size: 48px; opacity: 0.25;"></i>
                 </div>
                 
+                <div class="filmstrip" id="artFilmstrip"></div>
+                
                 <!-- Parameter Selector Controls Matrix -->
                 <div class="studio-controls-grid">
+                    <div style="grid-column: span 2; display: flex; gap: 10px;">
+                        <div style="flex:1;">
+                            <label style="font-size: 9px; text-transform: uppercase; display:block; margin-bottom:4px; opacity:0.7; text-align:left;">Seed Locker</label>
+                            <div style="display:flex; gap:8px;">
+                                <input type="checkbox" id="lockSeedToggle" title="Lock Seed">
+                                <input type="number" id="seedInput" class="studio-select" placeholder="Random..." style="flex:1; text-align:center;">
+                            </div>
+                        </div>
+                    </div>
                     <div>
                         <select id="artStyleSelect" class="studio-select">
                             <option value="">🔮 RAW Prompt (No Engine Injection)</option>
@@ -438,6 +484,13 @@
         </div>
 
         <div class="input-area glass-panel">
+            <div class="prompt-chips">
+                <span class="chip" onclick="appendChip('#FixCode ')">#FixCode</span>
+                <span class="chip" onclick="appendChip('#Summarize ')">#Summarize</span>
+                <span class="chip" onclick="appendChip('#Explain ')">#Explain</span>
+                <span class="chip" onclick="appendChip('#Brainstorm ')">#Brainstorm</span>
+            </div>
+            
             <div class="input-wrapper">
                 <div class="stop-generation-container" id="stopGenContainer">
                     <button class="stop-btn" onclick="triggerAbortGeneration()">
@@ -490,6 +543,40 @@
         let activeSearchQuery = "";
         let pendingFileContentPayload = ""; 
         let currentMode = "chat";
+        let userScrolledUp = false;
+
+        // Auto-Scroll Lock Logic
+        $('chatScroll').addEventListener('scroll', () => {
+            const scrollBox = $('chatScroll');
+            if (scrollBox.scrollTop + scrollBox.clientHeight < scrollBox.scrollHeight - 50) {
+                userScrolledUp = true;
+                if(isGenerating) $('scrollBottomBtn').style.display = 'block';
+            } else {
+                userScrolledUp = false;
+                $('scrollBottomBtn').style.display = 'none';
+            }
+        });
+
+        function forceScrollBottom() {
+            userScrolledUp = false;
+            $('scrollBottomBtn').style.display = 'none';
+            const scrollBox = $('chatScroll');
+            scrollBox.scrollTop = scrollBox.scrollHeight;
+        }
+
+        // Feature: Chip Appender
+        function appendChip(text) {
+            const input = $('msgInput');
+            input.value = text + input.value;
+            input.focus();
+            updateCounter(input);
+        }
+
+        // Feature: Quick Clear
+        function quickClearChat() {
+            if(isGenerating) return;
+            $('chatInner').innerHTML = '';
+        }
 
         // IMMERSIVE WEB AUDIO SYNTHESIZER
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -603,6 +690,11 @@
                 }
                 let scrubbedSpeechText = textToSpeak.replace(/```[\s\S]*?```/g, '[Code block skipped in voice output]');
                 const speechUtterance = new SpeechSynthesisUtterance(scrubbedSpeechText);
+                
+                // Incorporate Voice Sliders
+                speechUtterance.rate = parseFloat($('voiceSpeed').value) || 1;
+                speechUtterance.pitch = parseFloat($('voicePitch').value) || 1;
+
                 speechUtterance.onstart = () => btnNode.innerHTML = "🛑 Stop Voice";
                 speechUtterance.onend = () => btnNode.innerHTML = "🗣️ Speak";
                 speechUtterance.onerror = () => btnNode.innerHTML = "🗣️ Speak";
@@ -858,7 +950,7 @@
 
             $('chatInner').appendChild(row);
             if (role === 'ai') postProcessBubbleFormatting(row, text);
-            $('chatScroll').scrollTop = $('chatScroll').scrollHeight;
+            if (!userScrolledUp) { $('chatScroll').scrollTop = $('chatScroll').scrollHeight; }
             return row;
         }
 
@@ -1003,7 +1095,7 @@
                     currentAccumulatedString += tokens[index];
                     textDestinationNode.innerHTML = marked.parse(currentAccumulatedString);
                     index++;
-                    $('chatScroll').scrollTop = $('chatScroll').scrollHeight;
+                    if (!userScrolledUp) { $('chatScroll').scrollTop = $('chatScroll').scrollHeight; }
                 } else {
                     clearInterval(globalTimer); isGenerating = false; $('stopGenContainer').style.display = 'none';
                     setNeuralCoreState(false);
@@ -1055,7 +1147,7 @@
             loadingRow.className = 'msg-row ai'; loadingRow.id = 'loadingRowNode';
             loadingRow.innerHTML = `<div class="av">🤖</div><div class="bubble"><div class="typing-container" style="display: flex; align-items: center; gap: 8px;"><span style="font-size: 13px; font-style: italic; opacity: 0.8;">NeuraChat core calculation active...</span><span class="typing"><span></span><span></span><span></span></span></div></div>`;
             $('chatInner').appendChild(loadingRow);
-            $('chatScroll').scrollTop = $('chatScroll').scrollHeight;
+            if (!userScrolledUp) { $('chatScroll').scrollTop = $('chatScroll').scrollHeight; }
 
             try {
                 const data = await fetchWithRetry('https://neurachat-xxy2.onrender.com/chat', {
@@ -1301,7 +1393,14 @@
             if (aspectSelection === "16-9") { dimensionsWidth = 1280; dimensionsHeight = 720; }
             if (aspectSelection === "9-16") { dimensionsWidth = 720; dimensionsHeight = 1280; }
 
-            const generatedUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(artText)}?width=${dimensionsWidth}&height=${dimensionsHeight}&nologo=true&seed=${Math.floor(Math.random() * 9999999)}`;
+            // Seed Locker Logic
+            let activeSeed = $('seedInput').value;
+            if (!$('lockSeedToggle').checked || !activeSeed) {
+                activeSeed = Math.floor(Math.random() * 9999999);
+                $('seedInput').value = activeSeed; 
+            }
+
+            const generatedUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(artText)}?width=${dimensionsWidth}&height=${dimensionsHeight}&nologo=true&seed=${activeSeed}`;
             
             const newImg = new Image();
             newImg.src = generatedUrl;
@@ -1314,6 +1413,21 @@
                 displayFrame.innerHTML = '';
                 displayFrame.appendChild(newImg);
                 playSfx('done');
+                
+                // Filmstrip Builder Logic
+                const strip = $('artFilmstrip');
+                const thumb = document.createElement('img');
+                thumb.src = generatedUrl;
+                thumb.onclick = () => { 
+                    displayFrame.innerHTML = ''; 
+                    const clone = thumb.cloneNode();
+                    clone.style.width = "100%"; clone.style.height = "100%"; 
+                    clone.style.objectFit = "cover"; clone.style.borderRadius = "12px";
+                    displayFrame.appendChild(clone); 
+                };
+                strip.prepend(thumb);
+                if(strip.children.length > 5) strip.removeChild(strip.lastChild);
+
                 $('downloadArtBtn').style.display = "block";
                 $('downloadArtBtn').onclick = () => {
                     const link = document.createElement('a');
