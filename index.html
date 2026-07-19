@@ -649,7 +649,7 @@
             }
         }
 
-        // 4. PINNED NOTES STORAGE & RENDERING CONTROLS
+      // 4. PINNED NOTES STORAGE & RENDERING CONTROLS
         function pinMessage(text) {
             if (!text) return;
             const sanitizedText = text.replace(/Vipul D\. Kadam|Vipul Kadam|Vipul/gi, "DYNVALR");
@@ -667,16 +667,16 @@
             if (!container) return;
             container.innerHTML = '';
             if (pinnedNotes.length === 0) {
-                container.innerHTML = `<p style="text-align:center; opacity:0.5; font-size:12px; padding:20px; font-weight:600;">No notes have been pinned to structural sync loops yet.</p>`;
+                container.innerHTML = `<p style="text-align:center; opacity:0.5; font-size:14px; padding:20px; font-weight:600;">No notes have been pinned to structural sync loops yet.</p>`;
                 return;
             }
             pinnedNotes.forEach((note, idx) => {
                 const noteCard = document.createElement('div');
-                noteCard.style.cssText = 'background:var(--glass-card); border:1px solid var(--border); padding:12px; border-radius:12px; position:relative;';
+                noteCard.style.cssText = 'background:var(--glass-card); border:1px solid var(--border); padding:18px; border-radius:14px; position:relative; margin-bottom:4px;';
                 noteCard.innerHTML = `
-                    <span style="font-size:9px; color:var(--accent); font-weight:700; display:block; margin-bottom:6px; text-transform:uppercase;">📌 Pinned on ${note.date}</span>
-                    <div style="font-size:13px; max-height:140px; overflow-y:auto; line-height:1.5; color:var(--text);">${marked.parse(note.text)}</div>
-                    <button onclick="unpinMessage(${idx})" style="position:absolute; top:8px; right:8px; background:none; border:none; color:#ff4d4d; cursor:pointer; font-size:16px; font-weight:bold; transition:0.2s;">×</button>
+                    <span style="font-size:11px; color:var(--accent); font-weight:700; display:block; margin-bottom:10px; text-transform:uppercase; letter-spacing:0.5px;">📌 Pinned on ${note.date}</span>
+                    <div style="font-size:15.5px; max-height:280px; overflow-y:auto; line-height:1.65; color:var(--text); word-break:break-word;">${marked.parse(note.text)}</div>
+                    <button onclick="unpinMessage(${idx})" style="position:absolute; top:12px; right:12px; background:none; border:none; color:#ff4d4d; cursor:pointer; font-size:20px; font-weight:bold; transition:0.2s; opacity:0.6;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.6">×</button>
                 `;
                 container.appendChild(noteCard);
             });
