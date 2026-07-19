@@ -153,12 +153,12 @@
 
         /* MAIN CONTENT ROW */
         .main-content { flex: 1; display: flex; flex-direction: column; height: 100%; min-width: 0; background: transparent; position: relative; }
-        .header { display: flex; align-items: center; gap: 12px; padding: 16px 24px; background: var(--glass-bg); border-bottom: 1px solid var(--border); }
+        .header { display: flex; align-items: center; gap: 12px; padding: 16px 24px; background: var(--glass-bg); border-bottom: 1px solid var(--border); z-index: 5; }
         .menu-toggle { background: none; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; }
         .brand { font-family: 'Syne', sans-serif; font-size: 19px; font-weight: 700; letter-spacing: -0.5px; }
         .brand span { color: var(--accent); }
 
-        .chat-scroll { flex: 1; overflow-y: auto; padding: 28px 20px; position: relative; }
+        .chat-scroll { flex: 1; overflow-y: auto; padding: 28px 20px; position: relative; z-index: 2; }
         .chat-inner { max-width: 85%; width: 100%; min-width: 0; margin: 0 auto; display: flex; flex-direction: column; gap: 24px; }
 
         .scroll-bottom-btn { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); background: var(--accent); color: white; border: none; border-radius: 20px; padding: 8px 16px; font-size: 12px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.3); display: none; z-index: 100; animation: bubbleFlyIn 0.3s ease; }
@@ -256,7 +256,7 @@
         .stop-btn:hover { transform: scale(1.03); }
 
         /* INPUT AREA HOOKS */
-        .input-area { padding: 14px 20px 18px; background: var(--glass-bg); border-top: 1px solid var(--border); }
+        .input-area { padding: 14px 20px 18px; background: var(--glass-bg); border-top: 1px solid var(--border); z-index: 5; }
         .input-wrapper { max-width: 85%; margin: 0 auto; display: flex; flex-direction: column; gap: 4px; }
         
         .prompt-chips { display: flex; gap: 8px; max-width: 85%; margin: 0 auto; width: 100%; overflow-x: auto; padding-bottom: 8px; }
@@ -309,6 +309,18 @@
 </head>
 <body data-theme="dark">
 
+    <!-- Audio-Reactive Visual Backdrop Canvas Container -->
+    <canvas id="audioCanvas" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; pointer-events: none; opacity: 0.85;"></canvas>
+
+    <!-- Hacker Terminal Decryption Thinking Stream Window Overlay -->
+    <div id="hackerTerminal" style="display: none; position: fixed; top: 85px; right: 25px; width: 320px; height: 220px; background: rgba(5, 5, 10, 0.88); border: 1px solid var(--accent); border-radius: 12px; padding: 14px; font-family: 'Consolas', monospace; font-size: 11px; color: var(--accent); z-index: 999; backdrop-filter: blur(10px); box-shadow: 0 10px 30px rgba(0,0,0,0.5); overflow: hidden;">
+        <div style="border-bottom: 1px dashed var(--accent); padding-bottom: 4px; margin-bottom: 8px; display: flex; justify-content: space-between; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px;">
+            <span>⚡ NEURAL CORE LOG</span>
+            <span style="animation: bounce 1s infinite;">● ONLINE</span>
+        </div>
+        <div id="terminalContent" style="display: flex; flex-direction: column; gap: 4px; max-height: 175px; overflow: hidden; line-height: 1.4;"></div>
+    </div>
+
     <!-- Settings System Configuration Overlay -->
     <div class="modal-overlay" id="settingsModal" onclick="if(event.target==this) closeModal('settingsModal')">
         <div class="modal glass-panel">
@@ -355,7 +367,7 @@
         </div>
     </div>
 
-  <!-- Pinned Notes Modal Overlay Module -->
+    <!-- Pinned Notes Modal Overlay Module -->
     <div class="modal-overlay" id="pinnedModal" onclick="if(event.target==this) closeModal('pinnedModal')">
         <div class="modal glass-panel" style="max-width: 950px; width: 92%;">
             <div class="modal-header"><h3>⭐ Pinned Notes</h3><button class="close-modal" onclick="closeModal('pinnedModal')">×</button></div>
@@ -546,25 +558,6 @@
         </div>
     </div>
 
-    
-runSimulatedTextStream
-    function applySentimentColors(text) {
-    const lower = text.toLowerCase();
-    const root = document.documentElement.style;
-    
-    if (lower.includes("error") || lower.includes("failed")) {
-        root.setProperty('--accent', '#ff4d4d'); // Red
-    } else if (lower.includes("success") || lower.includes("fixed")) {
-        root.setProperty('--accent', '#00ff41'); // Green
-    } else if (lower.includes("idea") || lower.includes("imagine")) {
-        root.setProperty('--accent', '#ffaa00'); // Gold
-    } else {
-        root.setProperty('--accent', '#bd66ff'); // Default Purple
-    }
-}
-
-// Inside runSimulatedTextStream, just before the loop:
-applySentimentColors(scrubbedContent);
     <!-- Runtime Engine Script -->
     <script>
         const $ = id => document.getElementById(id);
@@ -587,6 +580,8 @@ applySentimentColors(scrubbedContent);
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         let ambientOsc = null;
         let ambientGain = null;
+        let audioCanvasAnimationId = null;
+        let terminalIntervalId = null;
 
         // 1. GLOBAL KEYBOARD SHORTCUT ENGINE
         document.addEventListener('keydown', (e) => {
@@ -633,17 +628,34 @@ applySentimentColors(scrubbedContent);
             }
         }
 
-        // 3. AMBIENT FOCUS AUDIO PIPELINE
+        // 3. AMBIENT FOCUS AUDIO PIPELINE & AUDIO-REACTIVE CANVAS VISUALIZER
         function toggleAmbientAudio() {
             try {
+                const canvas = $('audioCanvas');
+                const ctx = canvas.getContext('2d');
+
                 if (ambientOsc) {
                     ambientOsc.stop();
                     ambientOsc.disconnect();
                     ambientOsc = null;
+                    if(audioCanvasAnimationId) {
+                        cancelAnimationFrame(audioCanvasAnimationId);
+                        audioCanvasAnimationId = null;
+                    }
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
                     $('ambientBtn').style.background = 'none';
                     $('ambientBtn').style.color = 'var(--text)';
                     return;
                 }
+
+                // Match canvas layout screen parameters
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+                window.addEventListener('resize', () => {
+                    canvas.width = window.innerWidth;
+                    canvas.height = window.innerHeight;
+                });
+
                 ambientOsc = audioCtx.createOscillator();
                 ambientGain = audioCtx.createGain();
                 
@@ -654,21 +666,50 @@ applySentimentColors(scrubbedContent);
                 filter.type = 'lowpass';
                 filter.frequency.setValueAtTime(110, audioCtx.currentTime);
                 
+                const analyser = audioCtx.createAnalyser();
+                analyser.fftSize = 64; 
+                
                 ambientGain.gain.setValueAtTime(0.012, audioCtx.currentTime);
                 
                 ambientOsc.connect(filter);
-                filter.connect(ambientGain);
+                filter.connect(analyser);
+                analyser.connect(ambientGain);
                 ambientGain.connect(audioCtx.destination);
                 
                 ambientOsc.start();
                 $('ambientBtn').style.background = 'var(--accent)';
                 $('ambientBtn').style.color = 'white';
+
+                // Immersive Dynamic Canvas Wave Render Function Loop
+                const dataArray = new Uint8Array(analyser.frequencyBinCount);
+                function drawVisualizer() {
+                    if (!ambientOsc) return;
+                    audioCanvasAnimationId = requestAnimationFrame(drawVisualizer);
+                    analyser.getByteFrequencyData(dataArray);
+                    
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    
+                    // Create subtle pulsing neon nodes matching context variables
+                    for (let i = 0; i < analyser.frequencyBinCount; i++) {
+                        const magnitude = dataArray[i];
+                        const radius = (magnitude / 255) * 120;
+                        
+                        if (radius > 0) {
+                            ctx.beginPath();
+                            ctx.arc(canvas.width / 2, canvas.height / 2, radius * (i * 0.4 + 1), 0, Math.PI * 2);
+                            ctx.strokeStyle = `rgba(189, 102, 255, ${0.015 - (i * 0.001)})`;
+                            ctx.lineWidth = 2;
+                            ctx.stroke();
+                        }
+                    }
+                }
+                drawVisualizer();
             } catch(e) { 
                 console.error("Audio engine synthesis block conflict:", e); 
             }
         }
 
-      // 4. PINNED NOTES STORAGE & RENDERING CONTROLS
+        // 4. PINNED NOTES STORAGE & RENDERING CONTROLS
         function pinMessage(text) {
             if (!text) return;
             const sanitizedText = text.replace(/Vipul D\. Kadam|Vipul Kadam|Vipul/gi, "DYNVALR");
@@ -705,6 +746,57 @@ applySentimentColors(scrubbedContent);
             pinnedNotes.splice(idx, 1);
             localStorage.setItem('neurachat_pins', JSON.stringify(pinnedNotes));
             renderPinnedNotes();
+        }
+
+        // HACKER TERMINAL SUBSYSTEM CONTROLLER
+        function logToTerminal(message) {
+            const container = $('terminalContent');
+            if(!container) return;
+            const logEntry = document.createElement('div');
+            logEntry.innerHTML = `<span style="opacity:0.5;">></span> ${message}`;
+            container.prepend(logEntry);
+            if(container.children.length > 12) container.removeChild(container.lastChild);
+        }
+
+        function startHackerTerminalEngine() {
+            const logs = [
+                "Initializing synaptic link...", "Establishing matrix loop...", "Scrubbing memory arrays...",
+                "Bypassing token limits...", "Syncing localStorage nodes...", "Optimizing layout context...",
+                "Compiling markdown tables...", "Injecting styling variables...", "Manifesting cyber overlays...",
+                "Analyzing network responses...", "Parsing developer intent...", "Executing structural hooks..."
+            ];
+            $('terminalContent').innerHTML = '';
+            $('hackerTerminal').style.display = 'block';
+            
+            terminalIntervalId = setInterval(() => {
+                const randomBaseStr = logs[Math.floor(Math.random() * logs.length)];
+                const randomHexSeed = Math.random().toString(16).substring(2, 8).toUpperCase();
+                logToTerminal(`${randomBaseStr} [0x${randomHexSeed}]`);
+            }, 350);
+        }
+
+        function stopHackerTerminalEngine() {
+            if(terminalIntervalId) {
+                clearInterval(terminalIntervalId);
+                terminalIntervalId = null;
+            }
+            $('hackerTerminal').style.display = 'none';
+        }
+
+        // SENTIMENT-RESPONSIVE DYNAMIC COLOR ENGINE
+        function applySentimentColors(text) {
+            const lower = text.toLowerCase();
+            const root = document.documentElement.style;
+            
+            if (lower.includes("error") || lower.includes("failed") || lower.includes("broken") || lower.includes("network")) {
+                root.setProperty('--accent', '#ff4d4d'); // Crimson Red (Alert Matrix)
+            } else if (lower.includes("success") || lower.includes("fixed") || lower.includes("solved") || lower.includes("optimized")) {
+                root.setProperty('--accent', '#00ff41'); // Neon Hacker Green (Success Loop)
+            } else if (lower.includes("idea") || lower.includes("imagine") || lower.includes("creative") || lower.includes("artist")) {
+                root.setProperty('--accent', '#ffaa00'); // Amber Gold (Creative Core)
+            } else {
+                root.setProperty('--accent', '#bd66ff'); // Default Classic Purple
+            }
         }
 
         // Auto-Scroll Lock Logic
@@ -963,33 +1055,7 @@ applySentimentColors(scrubbedContent);
     </style>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"><\/script>
 </head>
-<canvas id="audioCanvas" style="position:fixed; top:0; left:0; width:100%; height:100%; z-index:0; pointer-events:none;"></canvas>
-toggleAmbientAudio<body>
-const canvas = $('audioCanvas');
-const ctx = canvas.getContext('2d');
-const analyser = audioCtx.createAnalyser();
-
-function toggleAmbientAudio() {
-    // ... (Keep your existing osc/filter setup)
-    // Connect filter to analyser instead of destination
-    filter.connect(analyser);
-    analyser.connect(audioCtx.destination);
-    
-    // Start Visualizer Loop
-    function draw() {
-        if (!ambientOsc) return;
-        requestAnimationFrame(draw);
-        const dataArray = new Uint8Array(analyser.frequencyBinCount);
-        analyser.getByteFrequencyData(dataArray);
-        
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        ctx.fillStyle = 'rgba(189, 102, 255, 0.05)';
-        dataArray.forEach((val, i) => {
-            ctx.fillRect(i * 5, canvas.height - val, 3, val);
-        });
-    }
-    draw();
-}
+<body>
     <div class="container">
         <div class="export-header"><h1>${activeSession.title}</h1><p>Generated by ${currentUserName}</p></div>
         <div id="render-target"></div>
@@ -1015,9 +1081,18 @@ function toggleAmbientAudio() {
             document.body.appendChild(linkElement); linkElement.click(); document.body.removeChild(linkElement);
         }
 
+        // Hardened Wiping System Updates
+        document.addEventListener('DOMContentLoaded', () => {
+            const displayFrame = $('artRenderOutput');
+            if (displayFrame && displayFrame.innerHTML.trim() === '') {
+                displayFrame.innerHTML = `<i class="fa-regular fa-image" style="font-size: 48px; opacity: 0.25;"></i>`;
+            }
+        });
+
         function clearAllData() {
             if (confirm("🚨 DANGER ZONE: Permanent reset profile setting sync keys?")) {
                 if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+                stopHackerTerminalEngine();
                 localStorage.clear();
                 allChats = {}; currentChatId = null; history = []; currentUserName = 'User'; pinnedNotes = [];
                 $('usernameInput').value = '';
@@ -1227,6 +1302,7 @@ function toggleAmbientAudio() {
             isGenerating = false;
             $('stopGenContainer').style.display = 'none';
             setNeuralCoreState(false);
+            stopHackerTerminalEngine(); // Safely close the logs terminal window
             
             const loadingRow = document.getElementById('loadingRowNode');
             if (loadingRow) loadingRow.remove();
@@ -1263,6 +1339,9 @@ function toggleAmbientAudio() {
             row.className = 'msg-row ai';
             let scrubbedContent = aiMessageText.replace(/Vipul D\. Kadam|Vipul Kadam|Vipul/gi, "DYNVALR");
             
+            // 🔥 SENTIMENT THEME SWITCHER ACTIVATED
+            applySentimentColors(scrubbedContent);
+
             let initialStructure = '';
             if (isFirstAI) {
                 const todayStr = new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
@@ -1279,7 +1358,12 @@ function toggleAmbientAudio() {
             let index = 0; let currentAccumulatedString = "";
             
             globalTimer = setInterval(() => {
-                if (!isGenerating) { clearInterval(globalTimer); setNeuralCoreState(false); return; }
+                if (!isGenerating) { 
+                    clearInterval(globalTimer); 
+                    setNeuralCoreState(false); 
+                    stopHackerTerminalEngine(); 
+                    return; 
+                }
                 if (index < tokens.length) {
                     currentAccumulatedString += tokens[index];
                     textDestinationNode.innerHTML = marked.parse(currentAccumulatedString);
@@ -1288,6 +1372,7 @@ function toggleAmbientAudio() {
                 } else {
                     clearInterval(globalTimer); isGenerating = false; $('stopGenContainer').style.display = 'none';
                     setNeuralCoreState(false);
+                    stopHackerTerminalEngine(); // Clear background logs terminal window
                     playSfx('done'); 
                     postProcessBubbleFormatting(row, scrubbedContent);
                     
@@ -1333,6 +1418,7 @@ function toggleAmbientAudio() {
             history.push({ role: 'user', content: finalPromptText });
             $('stopGenContainer').style.display = 'flex';
             setNeuralCoreState(true);
+            startHackerTerminalEngine(); // Wake up hacker overlay log loops
 
             const loadingRow = document.createElement('div');
             loadingRow.className = 'msg-row ai'; loadingRow.id = 'loadingRowNode';
@@ -1359,10 +1445,20 @@ function toggleAmbientAudio() {
                     runSimulatedTextStream(reply, isFirstAI);
                     if (isFirstUserMessageOverall) { runAISidebarAutoSummaryEngine(promptText); }
                 } 
-                else { isGenerating = false; $('stopGenContainer').style.display = 'none'; setNeuralCoreState(false); addMsg('ai', "⚠️ Server payload configuration missing."); }
+                else { 
+                    isGenerating = false; 
+                    $('stopGenContainer').style.display = 'none'; 
+                    setNeuralCoreState(false); 
+                    stopHackerTerminalEngine();
+                    addMsg('ai', "⚠️ Server payload configuration missing."); 
+                }
             } catch(e) { 
                 if (!isGenerating) return;
-                isGenerating = false; $('stopGenContainer').style.display = 'none'; loadingRow.remove(); setNeuralCoreState(false);
+                isGenerating = false; 
+                $('stopGenContainer').style.display = 'none'; 
+                loadingRow.remove(); 
+                setNeuralCoreState(false); 
+                stopHackerTerminalEngine();
                 addMsg('ai', `❌ Network Breakdown pipeline connection error.`);
             }
         }
@@ -1397,6 +1493,14 @@ function toggleAmbientAudio() {
         function saveToLocalStorage() {
             localStorage.setItem('neurachat_saved_sessions', JSON.stringify(allChats));
             renderSidebarHistory();
+        }
+
+        // Feature: Hardened structural clearing modules
+        function forceLayoutPurgeRefresh() {
+            const outputFrame = $('artRenderOutput');
+            if (outputFrame) {
+                outputFrame.innerHTML = `<i class="fa-regular fa-image" style="font-size: 48px; opacity: 0.25;"></i>`;
+            }
         }
 
         function renderSidebarHistory() {
@@ -1646,21 +1750,5 @@ function toggleAmbientAudio() {
             createNewChat();
         };
     </script>
-<div id="hackerTerminal" style="display:none; position:fixed; top:20px; right:20px; width:300px; height:200px; background:rgba(0,0,0,0.85); border:1px solid #00ff41; padding:10px; font-family:monospace; font-size:10px; color:#00ff41; z-index:9999; overflow:hidden;">
-    <div id="terminalContent"></div>
-    <script>
-        function logToTerminal(message) {
-    const container = $('terminalContent');
-    const entry = document.createElement('div');
-    entry.innerText = `> ${message}`;
-    container.prepend(entry);
-    if(container.children.length > 15) container.removeChild(container.lastChild);
-}
-
-// Update your executeBackendChatRequest to call this
-// When AI starts thinking:
-$('hackerTerminal').style.display = 'block';
-setInterval(() => logToTerminal("Decrypting logic stream... " + Math.random().toString(36).substring(7)), 500);
-</div>
 </body>
 </html>
