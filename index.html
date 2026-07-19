@@ -11,6 +11,9 @@
     <!-- Markdown Parser Library -->
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     
+    <!-- Snapshot Engine Canvas Parsing Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    
     <!-- Code Highlighting (Prism Tomorrow Night Theme) -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
@@ -280,7 +283,7 @@
         .attach-btn { background: none; border: none; color: var(--muted); cursor: pointer; padding: 8px; display: flex; align-items: center; justify-content: center; border-radius: 50%; transition: 0.2s; }
         .attach-btn:hover { background: rgba(255,255,255,0.1); color: var(--accent); }
 
-        /* 🔥 IMAGE CANVAS ORIENTATION WRAPPERS */
+        /* IMAGE CANVAS ORIENTATION WRAPPERS */
         .studio-canvas-container {
             width: 100%; display: flex; align-items: center; justify-content: center; 
             background: rgba(0,0,0,0.2); border: 1px dashed var(--border); border-radius: 14px; 
@@ -352,6 +355,14 @@
         </div>
     </div>
 
+    <!-- Pinned Notes Modal Overlay Module -->
+    <div class="modal-overlay" id="pinnedModal" onclick="if(event.target==this) closeModal('pinnedModal')">
+        <div class="modal glass-panel" style="max-width: 500px;">
+            <div class="modal-header"><h3>⭐ Pinned Notes</h3><button class="close-modal" onclick="closeModal('pinnedModal')">×</button></div>
+            <div id="pinnedContainer" style="max-height: 55dvh; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; padding-right: 4px;"></div>
+        </div>
+    </div>
+
     <!-- About Overlay Box -->
     <div class="modal-overlay" id="aboutModal" onclick="if(event.target==this) closeModal('aboutModal')">
         <div class="modal glass-panel">
@@ -382,6 +393,12 @@
         <div class="chat-history" id="chatHistory"></div>
         
         <div class="sidebar-footer">
+            <button class="footer-btn" onclick="openModal('pinnedModal')">
+                <i class="fa-solid fa-star" style="width: 16px;"></i> Pinned Notes
+            </button>
+            <button class="footer-btn" id="ambientBtn" onclick="toggleAmbientAudio()">
+                <i class="fa-solid fa-headphones" style="width: 16px;"></i> Ambient Focus
+            </button>
             <button class="footer-btn" onclick="exportChatLogPremiumHTML()">
                 <i class="fa-solid fa-file-export" style="width: 16px;"></i> Premium Export (HTML)
             </button>
@@ -406,6 +423,7 @@
             <span class="brand">NeuraChat <span>Core</span> <small style="font-size:10px; opacity:0.6; font-weight: bold;">by DYNVALR</small></span>
             
             <div style="margin-left: auto; display: flex; align-items: center; gap: 10px;">
+                <button onclick="takeChatSnapshot()" style="background: var(--glass-card); border: 1px solid var(--border); color: var(--text); padding: 6px 10px; border-radius: 8px; font-family: 'Inter', sans-serif; font-size: 12px; font-weight: 600; cursor: pointer; transition: 0.2s;" title="Capture dynamic image blueprint">📸 Snapshot</button>
                 <button onclick="quickClearChat()" style="background: var(--glass-card); border: 1px solid var(--border); color: var(--text); padding: 6px 10px; border-radius: 8px; font-family: 'Inter', sans-serif; font-size: 12px; font-weight: 600; cursor: pointer; transition: 0.2s;" title="Wipe screen visually">🧹 Clear</button>
                 <select id="personaSelect" style="background: var(--glass-card); border: 1px solid var(--border); color: var(--text); padding: 6px 10px; border-radius: 8px; font-family: 'Inter', sans-serif; font-size: 12px; font-weight: 600; outline: none; cursor: pointer; backdrop-filter: blur(5px);">
                     <option value="default">🌌 Core Intelligence</option>
@@ -536,6 +554,7 @@
         let history = []; 
         let allChats = JSON.parse(localStorage.getItem('neurachat_saved_sessions')) || {};
         let currentUserName = localStorage.getItem('neurachat_username') || 'User';
+        let pinnedNotes = JSON.parse(localStorage.getItem('neurachat_pins')) || [];
         let recognition = null;
         
         let isGenerating = false;
@@ -544,6 +563,130 @@
         let pendingFileContentPayload = ""; 
         let currentMode = "chat";
         let userScrolledUp = false;
+
+        // IMMERSIVE WEB AUDIO SYNTHESIZER
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        let ambientOsc = null;
+        let ambientGain = null;
+
+        // 1. GLOBAL KEYBOARD SHORTCUT ENGINE
+        document.addEventListener('keydown', (e) => {
+            if (e.ctrlKey && e.key === 'Enter') {
+                e.preventDefault();
+                send();
+            }
+            if (e.ctrlKey && e.key === 'k') {
+                e.preventDefault();
+                quickClearChat();
+            }
+            if (e.ctrlKey && e.key === '/') {
+                e.preventDefault();
+                toggleSidebar();
+            }
+            if (e.key === 'Escape') {
+                closeModal('settingsModal');
+                closeModal('aboutModal');
+                closeModal('pinnedModal');
+                closePreview();
+            }
+        });
+
+        // 2. SNAPSHOT ENGINE MATRIX
+        async function takeChatSnapshot() {
+            const captureArea = $('chatInner');
+            if (!captureArea || captureArea.children.length === 0) {
+                alert("The chat matrix viewport is empty!");
+                return;
+            }
+            try {
+                const canvas = await html2canvas(captureArea, {
+                    backgroundColor: null,
+                    useCORS: true,
+                    scale: 2
+                });
+                const link = document.createElement('a');
+                link.download = `NeuraChat_Snapshot_${Date.now()}.png`;
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+            } catch (err) {
+                alert("Failed to capture screen graphics engine output.");
+                console.error(err);
+            }
+        }
+
+        // 3. AMBIENT FOCUS AUDIO PIPELINE
+        function toggleAmbientAudio() {
+            try {
+                if (ambientOsc) {
+                    ambientOsc.stop();
+                    ambientOsc.disconnect();
+                    ambientOsc = null;
+                    $('ambientBtn').style.background = 'none';
+                    $('ambientBtn').style.color = 'var(--text)';
+                    return;
+                }
+                ambientOsc = audioCtx.createOscillator();
+                ambientGain = audioCtx.createGain();
+                
+                ambientOsc.type = 'sawtooth';
+                ambientOsc.frequency.setValueAtTime(55, audioCtx.currentTime); 
+                
+                const filter = audioCtx.createBiquadFilter();
+                filter.type = 'lowpass';
+                filter.frequency.setValueAtTime(110, audioCtx.currentTime);
+                
+                ambientGain.gain.setValueAtTime(0.012, audioCtx.currentTime);
+                
+                ambientOsc.connect(filter);
+                filter.connect(ambientGain);
+                ambientGain.connect(audioCtx.destination);
+                
+                ambientOsc.start();
+                $('ambientBtn').style.background = 'var(--accent)';
+                $('ambientBtn').style.color = 'white';
+            } catch(e) { 
+                console.error("Audio engine synthesis block conflict:", e); 
+            }
+        }
+
+        // 4. PINNED NOTES STORAGE & RENDERING CONTROLS
+        function pinMessage(text) {
+            if (!text) return;
+            const sanitizedText = text.replace(/Vipul D\. Kadam|Vipul Kadam|Vipul/gi, "DYNVALR");
+            if (pinnedNotes.some(n => n.text === sanitizedText)) {
+                alert("This specific strategy breakdown is already pinned!");
+                return;
+            }
+            pinnedNotes.push({ text: sanitizedText, date: new Date().toLocaleDateString() });
+            localStorage.setItem('neurachat_pins', JSON.stringify(pinnedNotes));
+            alert("Saved to production prompt blueprint folder! ⭐");
+        }
+
+        function renderPinnedNotes() {
+            const container = $('pinnedContainer');
+            if (!container) return;
+            container.innerHTML = '';
+            if (pinnedNotes.length === 0) {
+                container.innerHTML = `<p style="text-align:center; opacity:0.5; font-size:12px; padding:20px; font-weight:600;">No notes have been pinned to structural sync loops yet.</p>`;
+                return;
+            }
+            pinnedNotes.forEach((note, idx) => {
+                const noteCard = document.createElement('div');
+                noteCard.style.cssText = 'background:var(--glass-card); border:1px solid var(--border); padding:12px; border-radius:12px; position:relative;';
+                noteCard.innerHTML = `
+                    <span style="font-size:9px; color:var(--accent); font-weight:700; display:block; margin-bottom:6px; text-transform:uppercase;">📌 Pinned on ${note.date}</span>
+                    <div style="font-size:13px; max-height:140px; overflow-y:auto; line-height:1.5; color:var(--text);">${marked.parse(note.text)}</div>
+                    <button onclick="unpinMessage(${idx})" style="position:absolute; top:8px; right:8px; background:none; border:none; color:#ff4d4d; cursor:pointer; font-size:16px; font-weight:bold; transition:0.2s;">×</button>
+                `;
+                container.appendChild(noteCard);
+            });
+        }
+
+        function unpinMessage(idx) {
+            pinnedNotes.splice(idx, 1);
+            localStorage.setItem('neurachat_pins', JSON.stringify(pinnedNotes));
+            renderPinnedNotes();
+        }
 
         // Auto-Scroll Lock Logic
         $('chatScroll').addEventListener('scroll', () => {
@@ -578,8 +721,6 @@
             $('chatInner').innerHTML = '';
         }
 
-        // IMMERSIVE WEB AUDIO SYNTHESIZER
-        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         function playSfx(type) {
             try {
                 const osc = audioCtx.createOscillator();
@@ -650,6 +791,7 @@
             $(id).style.display = 'flex'; 
             setTimeout(() => $(id).classList.add('active'), 10); 
             if(id === 'settingsModal') renderCustomPromptsLibrary();
+            if(id === 'pinnedModal') renderPinnedNotes();
         }
         function closeModal(id) { $(id).classList.remove('active'); setTimeout(() => $(id).style.display = 'none', 300); }
         function toggleSidebar() { $('sidebar').classList.toggle('collapsed'); }
@@ -832,7 +974,7 @@
             if (confirm("🚨 DANGER ZONE: Permanent reset profile setting sync keys?")) {
                 if ('speechSynthesis' in window) window.speechSynthesis.cancel();
                 localStorage.clear();
-                allChats = {}; currentChatId = null; history = []; currentUserName = 'User';
+                allChats = {}; currentChatId = null; history = []; currentUserName = 'User'; pinnedNotes = [];
                 $('usernameInput').value = '';
                 document.body.setAttribute('data-theme', 'dark');
                 $('themeBtn').innerHTML = '🌙 Dark Mode';
@@ -938,6 +1080,8 @@
                 voiceBtn.onclick = () => speakResponseText(voiceBtn, text);
                 const copyBtn = document.createElement('button'); copyBtn.className = 'msg-action-btn'; copyBtn.innerText = 'Copy';
                 copyBtn.onclick = () => { navigator.clipboard.writeText(text); copyBtn.innerText = 'Copied!'; setTimeout(() => copyBtn.innerText = 'Copy', 2000); };
+                const pinBtn = document.createElement('button'); pinBtn.className = 'msg-action-btn'; pinBtn.innerText = '⭐ Pin';
+                pinBtn.onclick = () => pinMessage(text);
                 const regenBtn = document.createElement('button'); regenBtn.className = 'msg-action-btn'; regenBtn.innerText = 'Regenerate';
                 regenBtn.onclick = () => regenerateLastAIResponse();
                 
@@ -945,7 +1089,7 @@
                 previewBtn.style.color = 'var(--accent)'; 
                 previewBtn.onclick = () => previewCode(previewBtn);
 
-                actionContainer.appendChild(voiceBtn); actionContainer.appendChild(copyBtn); actionContainer.appendChild(regenBtn); actionContainer.appendChild(previewBtn); row.appendChild(actionContainer);
+                actionContainer.appendChild(voiceBtn); actionContainer.appendChild(copyBtn); actionContainer.appendChild(pinBtn); actionContainer.appendChild(regenBtn); actionContainer.appendChild(previewBtn); row.appendChild(actionContainer);
             }
 
             $('chatInner').appendChild(row);
@@ -1107,6 +1251,8 @@
                     voiceBtn.onclick = () => speakResponseText(voiceBtn, scrubbedContent);
                     const copyBtn = document.createElement('button'); copyBtn.className = 'msg-action-btn'; copyBtn.innerText = 'Copy';
                     copyBtn.onclick = () => { navigator.clipboard.writeText(scrubbedContent); copyBtn.innerText = 'Copied!'; setTimeout(() => copyBtn.innerText = 'Copy', 2000); };
+                    const pinBtn = document.createElement('button'); pinBtn.className = 'msg-action-btn'; pinBtn.innerText = '⭐ Pin';
+                    pinBtn.onclick = () => pinMessage(scrubbedContent);
                     const regenBtn = document.createElement('button'); regenBtn.className = 'msg-action-btn'; regenBtn.innerText = 'Regenerate';
                     regenBtn.onclick = () => regenerateLastAIResponse();
                     
@@ -1114,7 +1260,7 @@
                     previewBtn.style.color = 'var(--accent)'; 
                     previewBtn.onclick = () => previewCode(previewBtn);
 
-                    actionContainer.appendChild(voiceBtn); actionContainer.appendChild(copyBtn); actionContainer.appendChild(regenBtn); actionContainer.appendChild(previewBtn); row.appendChild(actionContainer);
+                    actionContainer.appendChild(voiceBtn); actionContainer.appendChild(copyBtn); actionContainer.appendChild(pinBtn); actionContainer.appendChild(regenBtn); actionContainer.appendChild(previewBtn); row.appendChild(actionContainer);
                     
                     history.push({role:'assistant', content: scrubbedContent});
                     allChats[currentChatId].messages.push({ role: 'ai', content: scrubbedContent });
